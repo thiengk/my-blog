@@ -11,12 +11,16 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/personal-blog/backend/internal/config"
 	"github.com/personal-blog/backend/internal/database"
 	"github.com/personal-blog/backend/internal/handler"
 )
 
 func main() {
+	// Load .env file (ignore error if file doesn't exist, e.g., in production)
+	_ = godotenv.Load("../.env")
+
 	// Load configuration from environment variables
 	cfg, err := config.Load()
 	if err != nil {

@@ -48,6 +48,16 @@ migrate-down:
 	@echo "Rolling back last migration..."
 	migrate -path $(MIGRATE_DIR) -database "$(DATABASE_URL)" down 1
 
+## migrate-docker: Run migrations using Docker (alternative if migrate not installed)
+migrate-docker:
+	@echo "Running migrations with Docker..."
+	docker run --rm -v $(PWD)/migrations:/migrations --network host migrate/migrate -path=/migrations -database "$(DATABASE_URL)" up
+
+## migrate-down-docker: Rollback last migration using Docker
+migrate-down-docker:
+	@echo "Rolling back last migration with Docker..."
+	docker run --rm -v $(PWD)/migrations:/migrations --network host migrate/migrate -path=/migrations -database "$(DATABASE_URL)" down 1
+
 ## migrate-create: Create a new migration file (usage: make migrate-create name=create_users)
 migrate-create:
 	@echo "Creating migration: $(name)"
