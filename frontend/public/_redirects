@@ -1,0 +1,10 @@
+# Cloudflare Pages Redirects
+# Reference: https://developers.cloudflare.com/pages/configuration/redirects/
+
+# Common RSS URL aliases
+/feed /rss.xml 301
+/feed.xml /rss.xml 301
+/atom.xml /rss.xml 301
+
+# Common sitemap alias
+/sitemap /sitemap-index.xml 301

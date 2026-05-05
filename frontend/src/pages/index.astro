@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import NewsletterForm from '../components/NewsletterForm.svelte';
+---
+
+<BaseLayout title="Personal Blog" description="Blog cá nhân chia sẻ kinh nghiệm công nghệ và cuộc sống">
+  <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100">
+    Welcome to my blog
+  </h1>
+  <p class="mt-4 text-lg text-gray-600 dark:text-gray-400">
+    Chia sẻ kinh nghiệm làm việc, review khóa học công nghệ, và câu chuyện cuộc sống.
+  </p>
+
+  <!-- Newsletter Section -->
+  <section class="mt-16 py-10 px-6 sm:px-8 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700" aria-labelledby="newsletter-heading">
+    <div class="max-w-xl mx-auto text-center">
+      <h2 id="newsletter-heading" class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-0 mb-2">
+        Đăng ký nhận bài viết mới
+      </h2>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">
+        Nhận thông báo khi có bài viết mới qua email.
+      </p>
+      <NewsletterForm client:load />
+    </div>
+  </section>
+</BaseLayout>

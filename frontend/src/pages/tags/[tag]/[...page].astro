@@ -1,0 +1,106 @@
+---
+/**
+ * Tag Detail Page (with pagination)
+ * Displays posts filtered by tag, sorted by date descending.
+ * Uses getStaticPaths with paginate() for pagination support.
+ *
+ * Route: /tags/:tag (page 1), /tags/:tag/2 (page 2), etc.
+ *
+ * Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6
+ */
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import BlogCard from '../../../components/BlogCard.astro';
+import Pagination from '../../../components/Pagination.astro';
+
+const POSTS_PER_PAGE = 6;
+
+export const getStaticPaths = (async ({ paginate }) => {
+  // Get all non-draft blog posts
+  const allPosts = await getCollection('blog', ({ data }) => {
+    return data.draft !== true;
+  });
+
+  // Extract unique tags from all posts
+  const allTags = [...new Set(allPosts.flatMap((post) => post.data.tags))];
+
+  // Generate paginated paths for each tag
+  return allTags.flatMap((tag) => {
+    const filteredPosts = allPosts
+      .filter((post) => post.data.tags.includes(tag))
+      .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+    return paginate(filteredPosts, {
+      params: { tag },
+      pageSize: POSTS_PER_PAGE,
+    });
+  });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+const { tag } = Astro.params;
+const currentPage = page.currentPage;
+const totalPages = page.lastPage;
+const posts = page.data;
+---
+
+<BaseLayout
+  title={`Tag: #${tag}${currentPage > 1 ? ` - Trang ${currentPage}` : ''}`}
+  description={`Tất cả bài viết có tag "${tag}".`}
+>
+  <section>
+    <!-- Page Header -->
+    <div class="mb-8">
+      <nav class="mb-4">
+        <a
+          href="/tags"
+          class="text-sm text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-1"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+          Tất cả tags
+        </a>
+      </nav>
+      <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-gray-100 mt-0">
+        #{tag}
+      </h1>
+      <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">
+        {page.total} bài viết với tag này.
+        {currentPage > 1 && <span class="text-sm ml-2">— Trang {currentPage}</span>}
+      </p>
+    </div>
+
+    <!-- Blog Posts Grid -->
+    {posts.length > 0 ? (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {posts.map((post) => (
+          <BlogCard
+            title={post.data.title}
+            description={post.data.description}
+            date={post.data.date}
+            category={post.data.category}
+            tags={post.data.tags}
+            coverImage={post.data.coverImage}
+            slug={post.slug}
+            body={post.body}
+          />
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-12">
+        <p class="text-gray-500 dark:text-gray-400 text-lg">
+          Chưa có bài viết nào với tag này.
+        </p>
+      </div>
+    )}
+
+    <!-- Pagination -->
+    <Pagination
+      currentPage={currentPage}
+      totalPages={totalPages}
+      baseUrl={`/tags/${tag}`}
+    />
+  </section>
+</BaseLayout>

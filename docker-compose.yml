@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+  # PostgreSQL 16 for local development
+  postgres:
+    image: postgres:16-alpine
+    container_name: blog-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: blog_user
+      POSTGRES_PASSWORD: blog_password
+      POSTGRES_DB: blog_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blog_user -d blog_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 7 for local development
+  redis:
+    image: redis:7-alpine
+    container_name: blog-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Go backend (optional - can also run natively)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: blog-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      ENVIRONMENT: "development"
+      DATABASE_URL: "postgres://blog_user:blog_password@postgres:5432/blog_dev?sslmode=disable"
+      REDIS_URL: "redis://redis:6379"
+      CORS_ORIGINS: "http://localhost:4321,http://localhost:3000"
+      DB_MAX_CONNS: "10"
+      DB_MIN_CONNS: "2"
+      DB_MAX_CONN_LIFE: "30m"
+      RATE_LIMIT_PUBLIC: "100"
+      RATE_LIMIT_NEWSLETTER: "10"
+      RATE_LIMIT_WINDOW: "1m"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - full
+
+volumes:
+  postgres_data:
+  redis_data:

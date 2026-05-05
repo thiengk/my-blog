@@ -1,0 +1,163 @@
+---
+/**
+ * OptimizedImage Component
+ *
+ * A wrapper component for optimized image rendering with:
+ * - Responsive srcset generation (400, 800, 1200, 1600, 2000px widths)
+ * - WebP format output via Astro's built-in image optimization
+ * - Lazy loading for below-fold images
+ * - LQIP (Low Quality Image Placeholder) with CSS blur technique
+ * - Max width constraint of 2000px
+ * - Aspect ratio preservation
+ *
+ * Validates: Requirements 9.1, 9.2, 9.5, 9.6
+ */
+import { Image } from 'astro:assets';
+import {
+  RESPONSIVE_WIDTHS,
+  MAX_IMAGE_WIDTH,
+  DEFAULT_QUALITY,
+  generateSizes,
+  getBlurPlaceholder,
+  stylesToString,
+  constrainDimensions,
+  getLoadingStrategy,
+  getFetchPriority,
+} from '../lib/image-utils';
+
+interface Props {
+  /** Image source - can be an imported image or a remote URL string */
+  src: ImageMetadata | string;
+  /** Alt text for accessibility (required) */
+  alt: string;
+  /** Original width of the image (used for constraint calculations) */
+  width?: number;
+  /** Original height of the image (used for aspect ratio) */
+  height?: number;
+  /** Whether this image is above the fold (disables lazy loading) */
+  priority?: boolean;
+  /** Layout context for responsive sizes attribute */
+  layout?: 'full' | 'content' | 'card';
+  /** Dominant color for blur placeholder */
+  placeholderColor?: string;
+  /** Additional CSS classes */
+  class?: string;
+  /** Image quality (1-100, default 80) */
+  quality?: number;
+}
+
+const {
+  src,
+  alt,
+  width,
+  height,
+  priority = false,
+  layout = 'content',
+  placeholderColor = '#e2e8f0',
+  class: className = '',
+  quality = DEFAULT_QUALITY,
+} = Astro.props;
+
+// Determine loading strategy
+const loading = getLoadingStrategy(priority);
+const fetchpriority = getFetchPriority(priority);
+
+// Generate sizes attribute for responsive rendering
+const sizes = generateSizes(layout);
+
+// Calculate constrained dimensions
+const constrainedDims = width && height
+  ? constrainDimensions(width, height)
+  : undefined;
+
+const finalWidth = constrainedDims?.width ?? width;
+const finalHeight = constrainedDims?.height ?? height;
+
+// Generate blur placeholder styles
+const placeholderStyles = getBlurPlaceholder(placeholderColor, finalWidth && finalHeight ? finalWidth / finalHeight : undefined);
+const placeholderStyleStr = stylesToString(placeholderStyles);
+
+// Determine widths for srcset (filter out widths larger than image)
+const srcsetWidths = finalWidth
+  ? RESPONSIVE_WIDTHS.filter((w) => w <= finalWidth)
+  : [...RESPONSIVE_WIDTHS];
+
+// Ensure at least one width entry
+if (srcsetWidths.length === 0 && finalWidth) {
+  srcsetWidths.push(finalWidth);
+}
+
+// Check if src is an imported image (ImageMetadata) or a string URL
+const isLocalImage = typeof src !== 'string';
+---
+
+<div
+  class:list={['optimized-image-wrapper', className]}
+  style={finalWidth && finalHeight ? `aspect-ratio: ${finalWidth} / ${finalHeight};` : undefined}
+>
+  <!-- LQIP Blur Placeholder -->
+  <div
+    class="optimized-image-placeholder"
+    style={placeholderStyleStr}
+    aria-hidden="true"
+  ></div>
+
+  <!-- Optimized Image -->
+  {isLocalImage ? (
+    <Image
+      src={src}
+      alt={alt}
+      width={finalWidth ?? MAX_IMAGE_WIDTH}
+      height={finalHeight}
+      widths={srcsetWidths}
+      sizes={sizes}
+      format="webp"
+      quality={quality}
+      loading={loading}
+      decoding={priority ? 'sync' : 'async'}
+      class="optimized-image"
+      data-fetchpriority={fetchpriority}
+      onload="this.parentElement.querySelector('.optimized-image-placeholder').style.opacity='0'"
+    />
+  ) : (
+    <img
+      src={src as string}
+      alt={alt}
+      width={finalWidth}
+      height={finalHeight}
+      sizes={sizes}
+      loading={loading}
+      decoding={priority ? 'sync' : 'async'}
+      fetchpriority={fetchpriority}
+      class="optimized-image"
+      onload="this.parentElement.querySelector('.optimized-image-placeholder').style.opacity='0'"
+    />
+  )}
+</div>
+
+<style>
+  .optimized-image-wrapper {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .optimized-image-placeholder {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background-size: cover;
+    filter: blur(20px);
+    transform: scale(1.1);
+    transition: opacity 0.3s ease-in-out;
+  }
+
+  .optimized-image {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
+</style>
