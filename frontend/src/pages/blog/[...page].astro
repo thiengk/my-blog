@@ -12,9 +12,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import BlogCard from '../../components/BlogCard.astro';
 import Pagination from '../../components/Pagination.astro';
 
-const POSTS_PER_PAGE = 6;
-
 export const getStaticPaths = (async ({ paginate }) => {
+  const POSTS_PER_PAGE = 6;
+  
   // Get all non-draft blog posts, sorted by date descending
   const allPosts = await getCollection('blog', ({ data }) => {
     return data.draft !== true;

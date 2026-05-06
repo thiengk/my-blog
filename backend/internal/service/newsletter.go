@@ -50,13 +50,15 @@ type NewsletterService interface {
 
 // newsletterService implements NewsletterService.
 type newsletterService struct {
-	db *pgxpool.Pool
+	db           *pgxpool.Pool
+	emailService EmailService
 }
 
 // NewNewsletterService creates a new NewsletterService instance.
-func NewNewsletterService(db *pgxpool.Pool) NewsletterService {
+func NewNewsletterService(db *pgxpool.Pool, emailService EmailService) NewsletterService {
 	return &newsletterService{
-		db: db,
+		db:           db,
+		emailService: emailService,
 	}
 }
 
@@ -143,6 +145,14 @@ func (s *newsletterService) Subscribe(ctx context.Context, email string) error {
 		return fmt.Errorf("failed to create subscriber: %w", err)
 	}
 
+	// Send verification email
+	if s.emailService != nil {
+		if emailErr := s.emailService.SendVerificationEmail(email, token); emailErr != nil {
+			log.Printf("WARNING: Failed to send verification email to %s: %v", email, emailErr)
+			// Don't return error - subscriber is already created
+		}
+	}
+
 	return nil
 }
 
@@ -189,6 +199,20 @@ func (s *newsletterService) VerifyEmail(ctx context.Context, token string) error
 		return ErrTokenNotFound
 	}
 
+	// Get email before updating
+	var email string
+	err := s.db.QueryRow(ctx,
+		"SELECT email FROM newsletter_subscribers WHERE verification_token = $1 AND status = $2",
+		token, StatusPending,
+	).Scan(&email)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrTokenNotFound
+		}
+		log.Printf("ERROR: Failed to find subscriber with token: %v", err)
+		return fmt.Errorf("failed to verify email: %w", err)
+	}
+
 	// Find subscriber by token and update status to active
 	result, err := s.db.Exec(ctx, `
 		UPDATE newsletter_subscribers
@@ -201,16 +225,15 @@ func (s *newsletterService) VerifyEmail(ctx context.Context, token string) error
 	}
 
 	if result.RowsAffected() == 0 {
-		// Check if token exists but status is not pending
-		var status string
-		checkErr := s.db.QueryRow(ctx,
-			"SELECT status FROM newsletter_subscribers WHERE verification_token = $1", token,
-		).Scan(&status)
-		if checkErr != nil {
-			return ErrTokenNotFound
+		return ErrTokenNotFound
+	}
+
+	// Send welcome email
+	if s.emailService != nil {
+		if emailErr := s.emailService.SendWelcomeEmail(email); emailErr != nil {
+			log.Printf("WARNING: Failed to send welcome email to %s: %v", email, emailErr)
+			// Don't return error - verification is already done
 		}
-		// Token exists but subscriber is already active or unsubscribed
-		return nil
 	}
 
 	return nil

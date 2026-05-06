@@ -15,6 +15,7 @@ import (
 	"github.com/personal-blog/backend/internal/config"
 	"github.com/personal-blog/backend/internal/database"
 	"github.com/personal-blog/backend/internal/handler"
+	"github.com/personal-blog/backend/internal/service"
 )
 
 func main() {
@@ -75,13 +76,30 @@ func main() {
 	api := router.Group("/api")
 	healthHandler.RegisterRoutes(api)
 
+	// Newsletter endpoints
+	if dbPool != nil {
+		var emailService service.EmailService
+		if cfg.SendGridAPIKey != "" {
+			emailService = service.NewEmailService(
+				cfg.SendGridAPIKey,
+				cfg.EmailFrom,
+				cfg.EmailFromName,
+				cfg.SiteURL,
+			)
+			log.Println("Email service (SendGrid) initialized")
+		} else {
+			log.Println("WARNING: SendGrid API key not configured, emails will not be sent")
+		}
+
+		newsletterService := service.NewNewsletterService(dbPool, emailService)
+		newsletterHandler := handler.NewNewsletterHandler(newsletterService)
+		newsletterHandler.RegisterRoutes(api)
+	}
+
 	// API route groups (handlers will be registered in later tasks)
 	// api.POST("/views/:slug", ...)
 	// api.GET("/views/:slug", ...)
 	// api.GET("/views", ...)
-	// api.POST("/newsletter/subscribe", ...)
-	// api.POST("/newsletter/unsubscribe", ...)
-	// api.GET("/newsletter/verify/:token", ...)
 
 	// Create HTTP server
 	srv := &http.Server{

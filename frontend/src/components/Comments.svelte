@@ -1,14 +1,19 @@
 <script>
   /**
-   * Giscus Comment System Wrapper
-   * Integrates Giscus widget with theme synchronization.
+   * Utterances Comment System Wrapper
+   * Integrates Utterances widget with theme synchronization.
    *
    * Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5
    *
    * Configuration:
-   * - Replace data-repo, data-repo-id, data-category, data-category-id
-   *   with your actual GitHub repository and Discussions category values.
-   * - Get these values from https://giscus.app
+   * - Replace 'username/repo-name' with your actual GitHub repository
+   * - Repository must be public
+   * - Install Utterances app: https://github.com/apps/utterances
+   *
+   * Utterances is simpler than Giscus:
+   * - Uses GitHub Issues instead of Discussions
+   * - No need for repo-id or category-id
+   * - Lightweight and easy to configure
    */
 
   /** @type {HTMLDivElement | undefined} */
@@ -19,47 +24,40 @@
 
   /**
    * Detect current theme based on document's dark class.
-   * @returns {'light' | 'dark_dimmed'}
+   * @returns {'github-light' | 'github-dark'}
    */
-  function getGiscusTheme() {
-    if (typeof document === 'undefined') return 'light';
-    return document.documentElement.classList.contains('dark') ? 'dark_dimmed' : 'light';
+  function getUtterancesTheme() {
+    if (typeof document === 'undefined') return 'github-light';
+    return document.documentElement.classList.contains('dark') ? 'github-dark' : 'github-light';
   }
 
   /**
-   * Send a message to the Giscus iframe to update its theme.
-   * @param {'light' | 'dark_dimmed'} theme
+   * Send a message to the Utterances iframe to update its theme.
+   * @param {'github-light' | 'github-dark'} theme
    */
-  function setGiscusTheme(theme) {
-    const iframe = container?.querySelector('iframe.giscus-frame');
+  function setUtterancesTheme(theme) {
+    const iframe = container?.querySelector('iframe.utterances-frame');
     if (!iframe) return;
 
     /** @type {HTMLIFrameElement} */ (iframe).contentWindow?.postMessage(
-      { giscus: { setConfig: { theme } } },
-      'https://giscus.app'
+      { type: 'set-theme', theme },
+      'https://utteranc.es'
     );
   }
 
   /**
-   * Load the Giscus script and inject it into the container.
+   * Load the Utterances script and inject it into the container.
    */
-  function loadGiscus() {
+  function loadUtterances() {
     if (!container || loaded) return;
 
     const script = document.createElement('script');
-    script.src = 'https://giscus.app/client.js';
-    script.setAttribute('data-repo', 'username/repo-name');
-    script.setAttribute('data-repo-id', 'R_placeholder');
-    script.setAttribute('data-category', 'Blog Comments');
-    script.setAttribute('data-category-id', 'DIC_placeholder');
-    script.setAttribute('data-mapping', 'pathname');
-    script.setAttribute('data-strict', '0');
-    script.setAttribute('data-reactions-enabled', '1');
-    script.setAttribute('data-emit-metadata', '0');
-    script.setAttribute('data-input-position', 'top');
-    script.setAttribute('data-theme', getGiscusTheme());
-    script.setAttribute('data-lang', 'vi');
-    script.setAttribute('data-loading', 'lazy');
+    script.src = 'https://utteranc.es/client.js';
+    // TODO: Thay 'username/repo-name' bằng repository GitHub của bạn
+    script.setAttribute('repo', 'username/repo-name');
+    script.setAttribute('issue-term', 'pathname');
+    script.setAttribute('label', 'blog-comment');
+    script.setAttribute('theme', getUtterancesTheme());
     script.crossOrigin = 'anonymous';
     script.async = true;
 
@@ -67,18 +65,18 @@
     loaded = true;
   }
 
-  // Initialize Giscus on mount and watch for theme changes
+  // Initialize Utterances on mount and watch for theme changes
   $effect(() => {
     if (!container) return;
 
-    // Load Giscus script
-    loadGiscus();
+    // Load Utterances script
+    loadUtterances();
 
     // Observe theme changes on <html> element (dark class toggle)
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         if (mutation.attributeName === 'class') {
-          setGiscusTheme(getGiscusTheme());
+          setUtterancesTheme(getUtterancesTheme());
         }
       }
     });
@@ -101,5 +99,5 @@
   <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">
     Bình luận
   </h2>
-  <div bind:this={container} class="giscus-container min-h-[260px]"></div>
+  <div bind:this={container} class="utterances-container min-h-[260px]"></div>
 </section>

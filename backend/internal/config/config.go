@@ -29,6 +29,12 @@ type Config struct {
 	RateLimitPublic     int64         // max requests per window for public endpoints
 	RateLimitNewsletter int64         // max requests per window for newsletter endpoints
 	RateLimitWindow     time.Duration // sliding window size
+
+	// Email (SendGrid)
+	SendGridAPIKey string
+	EmailFrom      string
+	EmailFromName  string
+	SiteURL        string
 }
 
 // Load reads configuration from environment variables.
@@ -49,6 +55,11 @@ func Load() (*Config, error) {
 		RateLimitPublic:     int64(getEnvInt("RATE_LIMIT_PUBLIC", 100)),
 		RateLimitNewsletter: int64(getEnvInt("RATE_LIMIT_NEWSLETTER", 10)),
 		RateLimitWindow:     getEnvDuration("RATE_LIMIT_WINDOW", 1*time.Minute),
+
+		SendGridAPIKey: getEnv("SENDGRID_API_KEY", ""),
+		EmailFrom:      getEnv("EMAIL_FROM", "noreply@example.com"),
+		EmailFromName:  getEnv("EMAIL_FROM_NAME", "Personal Blog"),
+		SiteURL:        getEnv("SITE_URL", "http://localhost:8080"),
 	}
 
 	// Validate required fields in production

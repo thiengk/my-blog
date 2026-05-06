@@ -46,7 +46,8 @@ func (h *NewsletterHandler) Subscribe(c *gin.Context) {
 	var req subscribeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": "email is required",
+			"success": false,
+			"message": "Email là bắt buộc",
 		})
 		return
 	}
@@ -56,22 +57,26 @@ func (h *NewsletterHandler) Subscribe(c *gin.Context) {
 		switch {
 		case errors.Is(err, service.ErrInvalidEmail):
 			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"error": "invalid email address",
+				"success": false,
+				"message": "Địa chỉ email không hợp lệ",
 			})
 		case errors.Is(err, service.ErrEmailAlreadyExists):
 			c.JSON(http.StatusConflict, gin.H{
-				"error": "email already subscribed",
+				"success": false,
+				"message": "Email này đã được đăng ký trước đó",
 			})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "failed to subscribe",
+				"success": false,
+				"message": "Đã có lỗi xảy ra. Vui lòng thử lại sau",
 			})
 		}
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "subscription successful, please check your email to verify",
+		"success": true,
+		"message": "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận",
 	})
 }
 
