@@ -142,7 +142,84 @@
 
   .prose pre code {
     @apply bg-transparent border-0 p-0 text-sm;
-    @apply text-gray-200;
+    @apply text-gray-100 dark:text-gray-100;
+    @apply font-mono;
+  }
+
+  /* Better contrast for ASCII art / diagrams in code blocks */
+  .prose pre {
+    @apply shadow-lg;
+  }
+  
+  .prose pre code {
+    @apply leading-6;
+    letter-spacing: 0.02em;
+  }
+
+  /* Plain text code blocks (no language specified) - better for ASCII diagrams */
+  .prose pre:not([class*="language-"]) {
+    @apply bg-gray-50 dark:bg-gray-900;
+    @apply border-2 border-gray-300 dark:border-gray-600;
+  }
+
+  .prose pre:not([class*="language-"]) code {
+    @apply text-gray-900 dark:text-gray-100;
+    @apply font-semibold;
+  }
+
+  /* Override Shiki default colors for better contrast */
+  .prose pre.astro-code {
+    @apply bg-gray-900 dark:bg-gray-950;
+  }
+
+  /* Force dark text for plain code blocks */
+  .prose pre code,
+  .prose pre.astro-code code {
+    color: inherit !important;
+  }
+
+  /* Specific styling for plain text blocks (ASCII art) */
+  .prose pre:not(.astro-code) {
+    @apply bg-gray-100 dark:bg-gray-800;
+    @apply border border-gray-300 dark:border-gray-600;
+  }
+
+  .prose pre:not(.astro-code) code {
+    @apply text-gray-900 dark:text-gray-50;
+    font-weight: 500 !important;
+    color: rgb(17 24 39) !important; /* gray-900 */
+  }
+
+  .dark .prose pre:not(.astro-code) code {
+    color: rgb(249 250 251) !important; /* gray-50 */
+  }
+
+  /* Additional override for any inline styles from Shiki */
+  .prose pre code span {
+    color: inherit !important;
+  }
+
+  /* Ensure plain text has good contrast */
+  .prose pre:not([class*="language-"]):not(.astro-code),
+  .prose pre.astro-code:not([data-language]) {
+    background-color: rgb(243 244 246) !important; /* gray-100 */
+  }
+
+  .dark .prose pre:not([class*="language-"]):not(.astro-code),
+  .dark .prose pre.astro-code:not([data-language]) {
+    background-color: rgb(31 41 55) !important; /* gray-800 */
+  }
+
+  .prose pre:not([class*="language-"]):not(.astro-code) code,
+  .prose pre.astro-code:not([data-language]) code {
+    color: rgb(17 24 39) !important; /* gray-900 */
+    font-weight: 600 !important;
+  }
+
+  .dark .prose pre:not([class*="language-"]):not(.astro-code) code,
+  .dark .prose pre.astro-code:not([data-language]) code {
+    color: rgb(249 250 251) !important; /* gray-50 */
+    font-weight: 600 !important;
   }
 
   /* Blockquotes */

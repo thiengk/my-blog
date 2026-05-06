@@ -76,7 +76,9 @@ func main() {
 	api := router.Group("/api")
 	healthHandler.RegisterRoutes(api)
 
-	// Newsletter endpoints
+	// Newsletter endpoints - DISABLED
+	// Uncomment below to enable newsletter functionality
+	/*
 	if dbPool != nil {
 		var emailService service.EmailService
 		if cfg.SendGridAPIKey != "" {
@@ -95,6 +97,7 @@ func main() {
 		newsletterHandler := handler.NewNewsletterHandler(newsletterService)
 		newsletterHandler.RegisterRoutes(api)
 	}
+	*/
 
 	// API route groups (handlers will be registered in later tasks)
 	// api.POST("/views/:slug", ...)

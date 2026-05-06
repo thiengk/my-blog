@@ -55,6 +55,10 @@ export default defineConfig({
         light: 'github-light',
         dark: 'github-dark',
       },
+      // Wrap code blocks with language class
+      wrap: true,
+      // Transform plain text blocks
+      transformers: [],
     },
   },
 });

@@ -1,26 +1,105 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import NewsletterForm from '../components/NewsletterForm.svelte';
 ---
 
 <BaseLayout title="Personal Blog" description="Blog cá nhân chia sẻ kinh nghiệm công nghệ và cuộc sống">
-  <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100">
-    Welcome to my blog
-  </h1>
-  <p class="mt-4 text-lg text-gray-600 dark:text-gray-400">
-    Chia sẻ kinh nghiệm làm việc, review khóa học công nghệ, và câu chuyện cuộc sống.
-  </p>
+  <div class="max-w-3xl">
+    <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100">
+      Welcome to my blog
+    </h1>
+    <p class="mt-4 text-xl text-gray-600 dark:text-gray-400">
+      Chia sẻ kinh nghiệm làm việc, review khóa học công nghệ, và câu chuyện cuộc sống.
+    </p>
 
-  <!-- Newsletter Section -->
-  <section class="mt-16 py-10 px-6 sm:px-8 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700" aria-labelledby="newsletter-heading">
-    <div class="max-w-xl mx-auto text-center">
-      <h2 id="newsletter-heading" class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-0 mb-2">
-        Đăng ký nhận bài viết mới
-      </h2>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">
-        Nhận thông báo khi có bài viết mới qua email.
-      </p>
-      <NewsletterForm client:load />
-    </div>
-  </section>
+    <!-- About Section -->
+    <section class="mt-12 space-y-6">
+      <div class="prose prose-lg dark:prose-invert max-w-none">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-0">
+          Về Blog Này
+        </h2>
+        <p class="text-gray-700 dark:text-gray-300">
+          Xin chào! Đây là nơi tôi chia sẻ những kiến thức, kinh nghiệm và suy nghĩ về công nghệ, 
+          lập trình và cuộc sống. Blog tập trung vào các chủ đề:
+        </p>
+        
+        <div class="grid md:grid-cols-2 gap-6 my-8">
+          <div class="p-6 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mt-0 mb-3">
+              💻 Công Nghệ & Lập Trình
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 text-base">
+              Hướng dẫn, tutorial về Java, Spring Boot, Docker, Microservices, 
+              và các công nghệ backend hiện đại.
+            </p>
+          </div>
+
+          <div class="p-6 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mt-0 mb-3">
+              ☁️ DevOps & Cloud
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 text-base">
+              Kinh nghiệm deploy, quản lý server, AWS, Oracle Cloud, 
+              và các best practices trong DevOps.
+            </p>
+          </div>
+
+          <div class="p-6 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mt-0 mb-3">
+              📚 Review & Học Tập
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 text-base">
+              Review khóa học, sách kỹ thuật, và chia sẻ lộ trình học tập 
+              hiệu quả cho developers.
+            </p>
+          </div>
+
+          <div class="p-6 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mt-0 mb-3">
+              🎯 Kinh Nghiệm Làm Việc
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 text-base">
+              Chia sẻ kinh nghiệm thực tế, giải quyết vấn đề, 
+              và những bài học từ các dự án thực tế.
+            </p>
+          </div>
+        </div>
+
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-12 mb-4">
+          Tại Sao Tôi Viết Blog?
+        </h2>
+        <ul class="space-y-3 text-gray-700 dark:text-gray-300">
+          <li class="flex items-start">
+            <span class="text-primary-600 dark:text-primary-400 mr-2">✓</span>
+            <span><strong>Ghi lại kiến thức:</strong> Viết blog giúp tôi hệ thống hóa và nhớ lâu hơn những gì đã học</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-primary-600 dark:text-primary-400 mr-2">✓</span>
+            <span><strong>Chia sẻ kinh nghiệm:</strong> Giúp đỡ những người đang trên cùng hành trình học tập</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-primary-600 dark:text-primary-400 mr-2">✓</span>
+            <span><strong>Kết nối cộng đồng:</strong> Gặp gỡ và học hỏi từ những người có cùng đam mê</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-primary-600 dark:text-primary-400 mr-2">✓</span>
+            <span><strong>Cải thiện kỹ năng:</strong> Viết nhiều giúp diễn đạt và tư duy logic tốt hơn</span>
+          </li>
+        </ul>
+
+        <div class="mt-12 p-6 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
+          <p class="text-gray-700 dark:text-gray-300 text-center text-lg">
+            <strong>Khám phá các bài viết mới nhất</strong> và đừng quên bookmark blog để không bỏ lỡ những chia sẻ hữu ích! 📚
+          </p>
+          <div class="mt-6 text-center">
+            <a 
+              href="/blog" 
+              class="inline-flex items-center px-6 py-3 rounded-lg font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors no-underline"
+            >
+              Xem Tất Cả Bài Viết →
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 </BaseLayout>

@@ -77,8 +77,6 @@ Hệ thống được thiết kế để:
 - WCAG AA compliant (contrast ratio ≥ 4.5:1)
 
 ### 4.4 Tương tác
-- Bình luận qua Giscus (GitHub Discussions)
-- Đăng ký Newsletter (email verification)
 - Đếm lượt xem bài viết (chống duplicate 24h)
 
 ### 4.5 SEO & Performance
@@ -105,9 +103,8 @@ Hệ thống được thiết kế để:
 | POST | `/api/views/:slug` | Ghi nhận lượt xem | 100 req/min |
 | GET | `/api/views/:slug` | Lấy view count | 100 req/min |
 | GET | `/api/views?slugs=a,b,c` | Bulk view counts | 100 req/min |
-| POST | `/api/newsletter/subscribe` | Đăng ký newsletter | 10 req/min |
-| POST | `/api/newsletter/unsubscribe` | Hủy đăng ký | 10 req/min |
-| GET | `/api/newsletter/verify/:token` | Xác nhận email | 20 req/min |
+
+**Lưu ý:** Newsletter endpoints đã bị vô hiệu hóa để đơn giản hóa project.
 
 ## 6. Database Schema
 
@@ -120,16 +117,6 @@ Hệ thống được thiết kế để:
 | created_at | TIMESTAMPTZ | Thời gian tạo |
 | updated_at | TIMESTAMPTZ | Cập nhật cuối |
 
-### newsletter_subscribers
-| Column | Type | Mô tả |
-|--------|------|-------|
-| id | BIGSERIAL | Primary key |
-| email | VARCHAR(320) | Email (UNIQUE) |
-| status | VARCHAR(20) | pending / active / unsubscribed |
-| verification_token | VARCHAR(64) | Token xác nhận |
-| subscribed_at | TIMESTAMPTZ | Thời gian đăng ký |
-| unsubscribed_at | TIMESTAMPTZ | Thời gian hủy |
-
 ### view_logs
 | Column | Type | Mô tả |
 |--------|------|-------|
@@ -137,6 +124,8 @@ Hệ thống được thiết kế để:
 | slug | VARCHAR(255) | Post slug |
 | ip_hash | VARCHAR(64) | SHA-256 hash IP |
 | viewed_at | TIMESTAMPTZ | Thời gian xem |
+
+**Lưu ý:** Bảng `newsletter_subscribers` vẫn tồn tại trong database nhưng không được sử dụng.
 
 ## 7. Chiến lược Scaling
 
