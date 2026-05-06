@@ -15,7 +15,6 @@ import (
 	"github.com/personal-blog/backend/internal/config"
 	"github.com/personal-blog/backend/internal/database"
 	"github.com/personal-blog/backend/internal/handler"
-	"github.com/personal-blog/backend/internal/service"
 )
 
 func main() {
