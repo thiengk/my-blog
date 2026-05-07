@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import RecommendedPosts from '../components/RecommendedPosts.svelte';
 ---
 
 <BaseLayout title="Personal Blog" description="Blog cá nhân chia sẻ kinh nghiệm công nghệ và cuộc sống">
@@ -98,6 +99,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               Xem Tất Cả Bài Viết →
             </a>
           </div>
+        </div>
+
+        <!-- Recommended Posts -->
+        <div class="mt-12">
+          <RecommendedPosts client:visible />
         </div>
       </div>
     </section>

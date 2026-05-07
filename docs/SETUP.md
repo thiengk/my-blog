@@ -53,6 +53,8 @@ Backend sẽ chạy tại: **http://localhost:8080**
 
 Kiểm tra health: `curl http://localhost:8080/api/health`
 
+**Lưu ý:** Backend khởi động background goroutine flush engagement batch mỗi 60 giây (likes/shares từ Redis → PostgreSQL).
+
 ### Bước 4 — Setup Frontend (Astro)
 
 ```bash
@@ -118,6 +120,7 @@ Frontend sẽ chạy tại: **http://localhost:4321**
 ### Migration failed
 - Đảm bảo PostgreSQL đã sẵn sàng trước khi chạy migrate
 - Kiểm tra `DATABASE_URL` trong file `.env`
+- Migrations bao gồm: `000001_create_post_views`, `000002_create_newsletter_subscribers`, `000003_create_view_logs`, `000004_create_post_engagement`, `000005_create_comments`, `000006_create_share_logs`
 
 ### Frontend build error
 - Xóa cache: `rm -rf frontend/node_modules frontend/.astro`

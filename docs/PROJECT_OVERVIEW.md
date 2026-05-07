@@ -53,7 +53,7 @@ Hệ thống được thiết kế để:
 | Database | PostgreSQL (Neon) | Reliable, free tier tốt, serverless |
 | Cache | Redis (Upstash) | REST-based, free tier, rate limiting |
 | Search | Fuse.js (client-side) | Không cần server, phù hợp blog cá nhân |
-| Comments | Giscus | Free, GitHub Discussions, không cần backend |
+| Comments | Internal (PostgreSQL) | Không phụ thuộc bên thứ 3, full control |
 | Frontend Hosting | Cloudflare Pages | Free, global CDN, auto-build từ Git |
 | Backend Hosting | Fly.io | Free tier, container support, auto-scale |
 
@@ -78,6 +78,11 @@ Hệ thống được thiết kế để:
 
 ### 4.4 Tương tác
 - Đếm lượt xem bài viết (chống duplicate 24h)
+- Like bài viết (dedup 24h theo IP, localStorage persistence)
+- Share tracking (Facebook, Twitter, LinkedIn, Copy Link) với platform analytics
+- Bình luận nội bộ (không phụ thuộc GitHub/Giscus)
+- Engagement counters (likes, comments, shares) hiển thị trên post detail và blog list
+- Recommendation engine (bài viết nổi bật theo engagement score)
 
 ### 4.5 SEO & Performance
 - Open Graph + Twitter Card meta tags
@@ -103,6 +108,13 @@ Hệ thống được thiết kế để:
 | POST | `/api/views/:slug` | Ghi nhận lượt xem | 100 req/min |
 | GET | `/api/views/:slug` | Lấy view count | 100 req/min |
 | GET | `/api/views?slugs=a,b,c` | Bulk view counts | 100 req/min |
+| POST | `/api/engagement/like/:slug` | Ghi nhận like | 60 req/min |
+| POST | `/api/engagement/share/:slug` | Ghi nhận share | 60 req/min |
+| GET | `/api/engagement/:slug` | Lấy engagement counts | Không giới hạn |
+| GET | `/api/engagement?slugs=a,b,c` | Bulk engagement counts | Không giới hạn |
+| POST | `/api/comments/:slug` | Tạo comment mới | 30 req/min |
+| GET | `/api/comments/:slug` | Lấy danh sách comments | Không giới hạn |
+| GET | `/api/recommendations?limit=10` | Bài viết đề xuất | Không giới hạn |
 
 **Lưu ý:** Newsletter endpoints đã bị vô hiệu hóa để đơn giản hóa project.
 
@@ -124,6 +136,36 @@ Hệ thống được thiết kế để:
 | slug | VARCHAR(255) | Post slug |
 | ip_hash | VARCHAR(64) | SHA-256 hash IP |
 | viewed_at | TIMESTAMPTZ | Thời gian xem |
+
+### post_engagement
+| Column | Type | Mô tả |
+|--------|------|-------|
+| id | BIGSERIAL | Primary key |
+| slug | VARCHAR(255) | Post slug (UNIQUE) |
+| like_count | BIGINT | Tổng lượt like |
+| comment_count | BIGINT | Tổng comments |
+| share_count | BIGINT | Tổng lượt share |
+| created_at | TIMESTAMPTZ | Thời gian tạo |
+| updated_at | TIMESTAMPTZ | Cập nhật cuối |
+
+### comments
+| Column | Type | Mô tả |
+|--------|------|-------|
+| id | BIGSERIAL | Primary key |
+| slug | VARCHAR(255) | Post slug |
+| author_name | VARCHAR(100) | Tên người bình luận |
+| content | TEXT | Nội dung bình luận |
+| ip_hash | VARCHAR(64) | SHA-256 hash IP |
+| created_at | TIMESTAMPTZ | Thời gian tạo |
+
+### share_logs
+| Column | Type | Mô tả |
+|--------|------|-------|
+| id | BIGSERIAL | Primary key |
+| slug | VARCHAR(255) | Post slug |
+| platform | VARCHAR(20) | Platform (facebook, twitter, linkedin, copy-link) |
+| ip_hash | VARCHAR(64) | SHA-256 hash IP |
+| shared_at | TIMESTAMPTZ | Thời gian share |
 
 **Lưu ý:** Bảng `newsletter_subscribers` vẫn tồn tại trong database nhưng không được sử dụng.
 
@@ -165,6 +207,7 @@ Hệ thống được thiết kế để:
 | Backend API | View count, newsletter, rate limit, caching | ✅ Hoàn thành |
 | Integration | Frontend ↔ Backend connection | ✅ Hoàn thành |
 | Deployment | Cloudflare Pages + Fly.io configs | ✅ Hoàn thành |
+| Post Engagement | Like, share, comments, recommendations | ✅ Hoàn thành |
 | **Go Live** | Cài đặt, test, deploy production | ⏳ Chờ cấp quyền |
 
 ## 10. Liên hệ

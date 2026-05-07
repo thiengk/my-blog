@@ -2,11 +2,12 @@
 /**
  * BlogCard Component
  * Displays a blog post preview card with cover image, title, description,
- * date, category, tags, and reading time.
+ * date, category, tags, reading time, and engagement counters.
  *
- * Validates: Requirements 1.6, 2.3, 2.4, 2.6
+ * Validates: Requirements 1.6, 2.3, 2.4, 2.6, 4.2
  */
 import { getReadingTimeFromMarkdown } from '../lib/reading-time';
+import EngagementCounter from './EngagementCounter.svelte';
 
 interface Props {
   title: string;
@@ -79,12 +80,17 @@ const formattedDate = date.toLocaleDateString('vi-VN', {
       {description}
     </p>
 
-    <!-- Footer: Date & Tags -->
+    <!-- Footer: Date, Engagement & Tags -->
     <div class="mt-auto">
       <!-- Date -->
       <time datetime={date.toISOString()} class="block text-xs text-gray-500 dark:text-gray-400 mb-2">
         {formattedDate}
       </time>
+
+      <!-- Engagement Counter -->
+      <div class="mb-2">
+        <EngagementCounter slug={slug} client:visible />
+      </div>
 
       <!-- Tags -->
       {tags.length > 0 && (

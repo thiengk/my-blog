@@ -15,6 +15,8 @@ import (
 	"github.com/personal-blog/backend/internal/config"
 	"github.com/personal-blog/backend/internal/database"
 	"github.com/personal-blog/backend/internal/handler"
+	"github.com/personal-blog/backend/internal/middleware"
+	"github.com/personal-blog/backend/internal/service"
 )
 
 func main() {
@@ -28,7 +30,8 @@ func main() {
 	}
 
 	// Initialize database connection pool
-	ctx := context.Background()
+	ctx, ctxCancel := context.WithCancel(context.Background())
+	defer ctxCancel()
 
 	dbPool, err := database.NewPostgresPool(ctx, cfg)
 	if err != nil {
@@ -52,6 +55,20 @@ func main() {
 		log.Println("Connected to Redis successfully")
 		defer redisClient.Close()
 	}
+
+	// Initialize rate limiter with engagement and comment configs
+	rateLimiter := middleware.NewRateLimiter(redisClient, map[string]middleware.RateLimitConfig{
+		"engagement": {
+			WindowSize:  1 * time.Minute,
+			MaxRequests: 60,
+			FailOpen:    true,
+		},
+		"comments": {
+			WindowSize:  1 * time.Minute,
+			MaxRequests: 30,
+			FailOpen:    true,
+		},
+	})
 
 	// Set Gin mode based on environment
 	if cfg.Environment == "production" {
@@ -98,10 +115,48 @@ func main() {
 	}
 	*/
 
-	// API route groups (handlers will be registered in later tasks)
-	// api.POST("/views/:slug", ...)
-	// api.GET("/views/:slug", ...)
-	// api.GET("/views", ...)
+	// Initialize services
+	engagementService := service.NewEngagementService(dbPool, redisClient)
+	commentService := service.NewCommentService(dbPool, redisClient)
+	recommendationService := service.NewRecommendationService(dbPool, redisClient)
+
+	// Initialize handlers
+	engagementHandler := handler.NewEngagementHandler(engagementService)
+	commentHandler := handler.NewCommentHandler(commentService)
+	recommendationHandler := handler.NewRecommendationHandler(recommendationService)
+
+	// Engagement write routes (rate-limited: 60 req/min)
+	api.POST("/engagement/like/:slug", rateLimiter.Middleware("engagement"), engagementHandler.RecordLike)
+	api.POST("/engagement/share/:slug", rateLimiter.Middleware("engagement"), engagementHandler.RecordShare)
+
+	// Engagement read routes (no rate limit)
+	api.GET("/engagement/:slug", engagementHandler.GetCounts)
+	api.GET("/engagement", engagementHandler.GetBulkCounts)
+
+	// Comment write route (rate-limited: 30 req/min)
+	api.POST("/comments/:slug", rateLimiter.Middleware("comments"), commentHandler.CreateComment)
+
+	// Comment read route (no rate limit)
+	api.GET("/comments/:slug", commentHandler.GetComments)
+
+	// Recommendation route (no rate limit)
+	recommendationHandler.RegisterRoutes(api)
+
+	// Start background goroutine for engagement batch flush (every 60 seconds)
+	go func() {
+		ticker := time.NewTicker(60 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				if err := engagementService.FlushBatch(ctx); err != nil {
+					log.Printf("ERROR: engagement batch flush failed: %v", err)
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 
 	// Create HTTP server
 	srv := &http.Server{
@@ -126,6 +181,9 @@ func main() {
 	<-quit
 
 	log.Println("Shutting down server...")
+
+	// Cancel background goroutines (engagement flush, etc.)
+	ctxCancel()
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
