@@ -116,14 +116,19 @@ func main() {
 	*/
 
 	// Initialize services
+	viewCountService := service.NewViewCountService(dbPool, redisClient)
 	engagementService := service.NewEngagementService(dbPool, redisClient)
 	commentService := service.NewCommentService(dbPool, redisClient)
 	recommendationService := service.NewRecommendationService(dbPool, redisClient)
 
 	// Initialize handlers
+	viewCountHandler := handler.NewViewCountHandler(viewCountService)
 	engagementHandler := handler.NewEngagementHandler(engagementService)
 	commentHandler := handler.NewCommentHandler(commentService)
 	recommendationHandler := handler.NewRecommendationHandler(recommendationService)
+
+	// View count routes
+	viewCountHandler.RegisterRoutes(api)
 
 	// Engagement write routes (rate-limited: 60 req/min)
 	api.POST("/engagement/like/:slug", rateLimiter.Middleware("engagement"), engagementHandler.RecordLike)
