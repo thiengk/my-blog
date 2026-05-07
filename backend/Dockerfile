@@ -37,8 +37,8 @@ WORKDIR /app
 # Copy binary from builder stage
 COPY --from=builder /app/server .
 
-# Copy migration files if they exist
-COPY --from=builder /app/migrations ./migrations/ 2>/dev/null || true
+# Copy migration files
+COPY --from=builder /app/migrations ./migrations/
 
 # Use non-root user
 USER appuser

@@ -52,7 +52,7 @@ Triển khai hệ thống tương tác bài viết bao gồm: bình luận nội
     - Nếu DB write fail, put count back vào Redis (retry on next cycle)
     - _Requirements: 2.5, 3.5, 7.2, 7.4_
 
-  - [x]* 2.5 Viết unit tests cho EngagementService
+  - [x] 2.5 Viết unit tests cho EngagementService
     - Test RecordLike: trường hợp like mới, duplicate like trong 24h
     - Test RecordShare: trường hợp share mới, duplicate share, platform tracking
     - Test GetCounts: cache hit, cache miss, pending batch counts
@@ -81,7 +81,7 @@ Triển khai hệ thống tương tác bài viết bao gồm: bình luận nội
     - `GetCommentCount`: check Redis cache `comment:count:{slug}` trước, fallback COUNT(*) từ PostgreSQL
     - _Requirements: 1.2, 4.1_
 
-  - [x]* 3.4 Viết unit tests cho CommentService
+  - [x] 3.4 Viết unit tests cho CommentService
     - Test CreateComment: tạo thành công, validation errors (empty author, empty content, quá dài)
     - Test GetComments: trả về đúng thứ tự chronological
     - Test GetCommentCount: cache hit, cache miss
@@ -102,7 +102,7 @@ Triển khai hệ thống tương tác bài viết bao gồm: bình luận nội
     - Giới hạn maximum 50 results
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
 
-  - [x]* 4.3 Viết unit tests cho RecommendationService
+  - [x] 4.3 Viết unit tests cho RecommendationService
     - Test GetTopPosts: cache hit, cache miss + recalculate
     - Test scoring formula với các weights khác nhau
     - Test tiebreaker khi cùng score
@@ -138,7 +138,7 @@ Triển khai hệ thống tương tác bài viết bao gồm: bình luận nội
     - Parse query param `limit` (default 10, max 50), gọi service.GetTopPosts
     - _Requirements: 5.3, 5.7_
 
-  - [x]* 6.4 Viết unit tests cho handlers
+  - [x] 6.4 Viết unit tests cho handlers
     - Test EngagementHandler: like success, like duplicate, share success, get counts, bulk counts
     - Test CommentHandler: create comment success, validation error, get comments
     - Test RecommendationHandler: get recommendations với limit
