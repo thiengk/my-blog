@@ -4,6 +4,7 @@ description: "Tài liệu yêu cầu hệ thống Zero-Shot Learning (ZSL) ứng
 date: 2026-05-08
 category: "nghien-cuu"
 tags: ["zero-shot-learning", "machine-learning", "medical-imaging", "deep-learning", "computer-vision", "pytorch"]
+password: "caothanhnguyen"
 draft: false
 coverImage: "https://images.unsplash.com/photo-1559757175-5700dde675bc?w=800&h=400&fit=crop"
 ---
