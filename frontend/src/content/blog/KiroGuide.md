@@ -4,6 +4,7 @@ description: "Tài liệu toàn diện về Kiro AI - từ Steering, Specs, Hook
 date: 2026-05-06
 category: "cong-nghe"
 tags: ["kiro", "ai", "development", "automation", "productivity", "tutorial", "devops"]
+password: "caothanhnguyen"
 draft: false
 coverImage: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=400&fit=crop"
 ---
