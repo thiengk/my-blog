@@ -10,6 +10,7 @@
    * @property {string} category
    * @property {string} content
    * @property {string} date
+   * @property {boolean} isProtected
    */
 
   /**
@@ -275,8 +276,13 @@
                   <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0 flex-1">
                       <!-- Title with highlight -->
-                      <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                        {@html highlight(result.item.title, query)}
+                      <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate flex items-center gap-1">
+                        {#if result.item.isProtected}
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 flex-shrink-0 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-label="Bài viết được bảo vệ bằng mật khẩu">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                          </svg>
+                        {/if}
+                        <span class="truncate">{@html highlight(result.item.title, query)}</span>
                       </h3>
                       <!-- Description with highlight -->
                       <p class="mt-1 text-xs text-gray-600 dark:text-gray-400 line-clamp-2">

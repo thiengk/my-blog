@@ -18,9 +18,10 @@ interface Props {
   coverImage?: string;
   slug: string;
   body: string;
+  isProtected?: boolean;
 }
 
-const { title, description, date, category, tags, coverImage, slug, body } = Astro.props;
+const { title, description, date, category, tags, coverImage, slug, body, isProtected = false } = Astro.props;
 
 const readingTime = getReadingTimeFromMarkdown(body);
 
@@ -70,7 +71,12 @@ const formattedDate = date.toLocaleDateString('vi-VN', {
 
     <!-- Title -->
     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 mt-0 line-clamp-2">
-      <a href={`/blog/${slug}`} class="no-underline text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+      <a href={`/blog/${slug}`} class="no-underline text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors inline-flex items-center gap-1.5">
+        {isProtected && (
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-label="Bài viết được bảo vệ bằng mật khẩu">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+        )}
         {title}
       </a>
     </h2>

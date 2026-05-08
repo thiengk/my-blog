@@ -8,3 +8,4 @@ Luôn trả lời bằng **tiếng Việt** khi tương tác với người dùn
 - Comment trong code có thể viết bằng tiếng Anh hoặc tiếng Việt tuỳ ngữ cảnh.
 - Tên biến, hàm, class vẫn nên dùng tiếng Anh theo chuẩn lập trình.
 - Nội dung commit message và PR description có thể viết bằng tiếng Việt.
+- Chú ý quan trọng nhất , trong specs , quá trình requirement -> design -> tasks đều phải tuân thủ theo quy ước của file này 

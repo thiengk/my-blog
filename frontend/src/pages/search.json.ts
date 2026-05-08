@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { isProtectedPost } from '../lib/password-utils';
 
 export const GET: APIRoute = async () => {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -13,6 +14,7 @@ export const GET: APIRoute = async () => {
       category: post.data.category,
       content: stripMarkdown(post.body || ''),
       date: post.data.date.toISOString().split('T')[0],
+      isProtected: isProtectedPost(post.data.password),
     })),
   };
 

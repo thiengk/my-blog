@@ -16,8 +16,10 @@ import LikeButton from '../../components/LikeButton.svelte';
 import ShareButtons from '../../components/ShareButtons.svelte';
 import EngagementCounter from '../../components/EngagementCounter.svelte';
 import CommentSection from '../../components/CommentSection.svelte';
+import PasswordGate from '../../components/PasswordGate.svelte';
 import { generateTOC } from '../../lib/toc';
 import { getReadingTimeFromMarkdown } from '../../lib/reading-time';
+import { isProtectedPost } from '../../lib/password-utils';
 
 export const getStaticPaths = (async () => {
   const allPosts = await getCollection('blog', ({ data }) => {
@@ -57,6 +59,9 @@ const formattedUpdatedDate = post.data.updatedDate
       day: 'numeric',
     })
   : null;
+
+// Check if post is password-protected
+const isProtected = isProtectedPost(post.data.password);
 ---
 
 <BaseLayout
@@ -78,110 +83,229 @@ const formattedUpdatedDate = post.data.updatedDate
     url={new URL(`/blog/${post.slug}`, 'https://blog.example.com').href}
     image={post.data.coverImage}
   />
-  <article class="lg:grid lg:grid-cols-[1fr_250px] lg:gap-8">
-    <!-- Main Content -->
-    <div class="min-w-0">
-      <!-- Post Header -->
-      <header class="mb-8">
-        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-gray-100 mt-0 mb-4 text-balance">
-          {post.data.title}
-        </h1>
+  {isProtected ? (
+    <PasswordGate
+      client:load
+      password={post.data.password}
+      slug={post.slug}
+      title={post.data.title}
+      date={formattedDate}
+      category={post.data.category}
+      tags={post.data.tags}
+    >
+      <article class="lg:grid lg:grid-cols-[1fr_250px] lg:gap-8">
+        <!-- Main Content -->
+        <div class="min-w-0">
+          <!-- Post Header -->
+          <header class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-gray-100 mt-0 mb-4 text-balance">
+              {post.data.title}
+            </h1>
 
-        <!-- Metadata -->
-        <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mb-4">
-          <!-- Date -->
-          <time datetime={post.data.date.toISOString()} class="flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-            </svg>
-            {formattedDate}
-          </time>
+            <!-- Metadata -->
+            <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mb-4">
+              <!-- Date -->
+              <time datetime={post.data.date.toISOString()} class="flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+                {formattedDate}
+              </time>
 
-          <span class="text-gray-300 dark:text-gray-600">•</span>
+              <span class="text-gray-300 dark:text-gray-600">•</span>
 
-          <!-- Reading Time -->
-          <span class="flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {readingTime}
-          </span>
+              <!-- Reading Time -->
+              <span class="flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {readingTime}
+              </span>
 
-          <span class="text-gray-300 dark:text-gray-600">•</span>
+              <span class="text-gray-300 dark:text-gray-600">•</span>
 
-          <!-- View Count -->
-          <span class="flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <ViewCounter slug={post.slug} client:visible />
-          </span>
+              <!-- View Count -->
+              <span class="flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <ViewCounter slug={post.slug} client:visible />
+              </span>
 
-          <span class="text-gray-300 dark:text-gray-600">•</span>
+              <span class="text-gray-300 dark:text-gray-600">•</span>
 
-          <!-- Engagement Counter -->
-          <EngagementCounter slug={post.slug} client:visible />
+              <!-- Engagement Counter -->
+              <EngagementCounter slug={post.slug} client:visible />
+            </div>
+
+            <!-- Category & Tags -->
+            <div class="flex flex-wrap items-center gap-2">
+              <a
+                href={`/categories/${post.data.category}`}
+                class="tag no-underline hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
+              >
+                {post.data.category}
+              </a>
+
+              {post.data.tags.map((tag) => (
+                <a
+                  href={`/tags/${tag}`}
+                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium no-underline
+                         bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300
+                         hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  #{tag}
+                </a>
+              ))}
+            </div>
+
+            {formattedUpdatedDate && (
+              <p class="mt-3 text-xs text-gray-500 dark:text-gray-400 italic">
+                Cập nhật lần cuối: {formattedUpdatedDate}
+              </p>
+            )}
+          </header>
+
+          <!-- Cover Image -->
+          {post.data.coverImage && (
+            <div class="mb-8 rounded-lg overflow-hidden">
+              <img
+                src={post.data.coverImage}
+                alt={`Cover image for ${post.data.title}`}
+                class="w-full h-auto object-cover"
+                loading="eager"
+              />
+            </div>
+          )}
+
+          <!-- Article Content -->
+          <div class="prose max-w-none">
+            <Content />
+          </div>
+
+          <!-- Engagement Actions -->
+          <div class="mt-8 flex flex-wrap items-center gap-4 border-t border-gray-200 dark:border-gray-700 pt-6">
+            <LikeButton slug={post.slug} client:visible />
+            <ShareButtons slug={post.slug} url={new URL('/blog/' + post.slug, 'https://blog.example.com').href} shareCount={0} client:visible />
+          </div>
+
+          <!-- Comment Section -->
+          <CommentSection slug={post.slug} client:visible />
         </div>
 
-        <!-- Category & Tags -->
-        <div class="flex flex-wrap items-center gap-2">
-          <a
-            href={`/categories/${post.data.category}`}
-            class="tag no-underline hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
-          >
-            {post.data.category}
-          </a>
+        <!-- TOC Sidebar (Desktop only) -->
+        <aside class="hidden lg:block">
+          <TableOfContents headings={toc} />
+        </aside>
+      </article>
+    </PasswordGate>
+  ) : (
+    <article class="lg:grid lg:grid-cols-[1fr_250px] lg:gap-8">
+      <!-- Main Content -->
+      <div class="min-w-0">
+        <!-- Post Header -->
+        <header class="mb-8">
+          <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-gray-100 mt-0 mb-4 text-balance">
+            {post.data.title}
+          </h1>
 
-          {post.data.tags.map((tag) => (
+          <!-- Metadata -->
+          <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mb-4">
+            <!-- Date -->
+            <time datetime={post.data.date.toISOString()} class="flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
+              {formattedDate}
+            </time>
+
+            <span class="text-gray-300 dark:text-gray-600">•</span>
+
+            <!-- Reading Time -->
+            <span class="flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {readingTime}
+            </span>
+
+            <span class="text-gray-300 dark:text-gray-600">•</span>
+
+            <!-- View Count -->
+            <span class="flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <ViewCounter slug={post.slug} client:visible />
+            </span>
+
+            <span class="text-gray-300 dark:text-gray-600">•</span>
+
+            <!-- Engagement Counter -->
+            <EngagementCounter slug={post.slug} client:visible />
+          </div>
+
+          <!-- Category & Tags -->
+          <div class="flex flex-wrap items-center gap-2">
             <a
-              href={`/tags/${tag}`}
-              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium no-underline
-                     bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300
-                     hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              href={`/categories/${post.data.category}`}
+              class="tag no-underline hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
             >
-              #{tag}
+              {post.data.category}
             </a>
-          ))}
-        </div>
 
-        {formattedUpdatedDate && (
-          <p class="mt-3 text-xs text-gray-500 dark:text-gray-400 italic">
-            Cập nhật lần cuối: {formattedUpdatedDate}
-          </p>
+            {post.data.tags.map((tag) => (
+              <a
+                href={`/tags/${tag}`}
+                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium no-underline
+                       bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300
+                       hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                #{tag}
+              </a>
+            ))}
+          </div>
+
+          {formattedUpdatedDate && (
+            <p class="mt-3 text-xs text-gray-500 dark:text-gray-400 italic">
+              Cập nhật lần cuối: {formattedUpdatedDate}
+            </p>
+          )}
+        </header>
+
+        <!-- Cover Image -->
+        {post.data.coverImage && (
+          <div class="mb-8 rounded-lg overflow-hidden">
+            <img
+              src={post.data.coverImage}
+              alt={`Cover image for ${post.data.title}`}
+              class="w-full h-auto object-cover"
+              loading="eager"
+            />
+          </div>
         )}
-      </header>
 
-      <!-- Cover Image -->
-      {post.data.coverImage && (
-        <div class="mb-8 rounded-lg overflow-hidden">
-          <img
-            src={post.data.coverImage}
-            alt={`Cover image for ${post.data.title}`}
-            class="w-full h-auto object-cover"
-            loading="eager"
-          />
+        <!-- Article Content -->
+        <div class="prose max-w-none">
+          <Content />
         </div>
-      )}
 
-      <!-- Article Content -->
-      <div class="prose max-w-none">
-        <Content />
+        <!-- Engagement Actions -->
+        <div class="mt-8 flex flex-wrap items-center gap-4 border-t border-gray-200 dark:border-gray-700 pt-6">
+          <LikeButton slug={post.slug} client:visible />
+          <ShareButtons slug={post.slug} url={new URL('/blog/' + post.slug, 'https://blog.example.com').href} shareCount={0} client:visible />
+        </div>
+
+        <!-- Comment Section -->
+        <CommentSection slug={post.slug} client:visible />
       </div>
 
-      <!-- Engagement Actions -->
-      <div class="mt-8 flex flex-wrap items-center gap-4 border-t border-gray-200 dark:border-gray-700 pt-6">
-        <LikeButton slug={post.slug} client:visible />
-        <ShareButtons slug={post.slug} url={new URL('/blog/' + post.slug, 'https://blog.example.com').href} shareCount={0} client:visible />
-      </div>
-
-      <!-- Comment Section -->
-      <CommentSection slug={post.slug} client:visible />
-    </div>
-
-    <!-- TOC Sidebar (Desktop only) -->
-    <aside class="hidden lg:block">
-      <TableOfContents headings={toc} />
-    </aside>
-  </article>
+      <!-- TOC Sidebar (Desktop only) -->
+      <aside class="hidden lg:block">
+        <TableOfContents headings={toc} />
+      </aside>
+    </article>
+  )}
 </BaseLayout>

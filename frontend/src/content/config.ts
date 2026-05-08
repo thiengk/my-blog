@@ -12,6 +12,7 @@ const blogCollection = defineCollection({
     coverImage: z.string().optional(),
     draft: z.boolean().default(false),
     slug: z.string().optional(),
+    password: z.string().max(128).optional(),
   }),
 });
 
