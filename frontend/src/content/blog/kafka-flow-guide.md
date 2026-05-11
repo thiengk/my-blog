@@ -5,7 +5,7 @@ date: 2026-05-11
 category: "cong-nghe"
 tags: ["kafka", "message-queue", "backend", "distributed-systems", "tutorial"]
 draft: false
-coverImage: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&h=400&fit=crop"
+coverImage: "https://images.viblo.asia/35bd305f-4ccd-45d4-b230-a4317e27ac15.png"
 ---
 
 # Luồng hoạt động Kafka - Minh họa & Ví dụ
