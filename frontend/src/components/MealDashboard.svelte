@@ -1,7 +1,7 @@
 <script>
   /**
    * MealDashboard Component
-   * Main dashboard showing next payer, stats, and recent payment history.
+   * Main dashboard showing next payer, stats, attendance, and recent payment history.
    */
   import { mealFetch } from '../lib/meal-api';
 
@@ -13,6 +13,10 @@
   let payments = $state([]);
   /** @type {any[]} */
   let members = $state([]);
+  /** @type {any[]} */
+  let participations = $state([]);
+  /** @type {Set<number>} - IDs of members present today */
+  let presentToday = $state(new Set());
   let loading = $state(true);
   let error = $state('');
   let confirmingMeal = $state('');
@@ -23,16 +27,21 @@
     loading = true;
     error = '';
     try {
-      const [npRes, statsRes, paymentsRes, membersRes] = await Promise.all([
+      const [npRes, statsRes, paymentsRes, membersRes, partRes] = await Promise.all([
         mealFetch('/api/meals/next-payer'),
         mealFetch('/api/meals/stats'),
         mealFetch('/api/meals/payments?limit=10&offset=0'),
         mealFetch('/api/meals/members'),
+        mealFetch('/api/meals/participations'),
       ]);
       nextPayer = npRes;
       stats = statsRes.stats || [];
       payments = paymentsRes.payments || [];
       members = membersRes.members || [];
+      participations = partRes.participations || [];
+
+      // Default: all active members are present
+      presentToday = new Set(members.filter(m => m.is_active).map(m => m.id));
     } catch (e) {
       error = 'Không thể tải dữ liệu. Vui lòng thử lại.';
     }
@@ -44,59 +53,115 @@
   });
 
   /**
+   * Check if a member participates in a meal type.
+   */
+  function participatesIn(memberId, mealType) {
+    const p = participations.find(x => x.member_id === memberId && x.meal_type === mealType);
+    return p ? p.is_participating : false;
+  }
+
+  /**
+   * Get members present today for a specific meal.
+   */
+  function getPresentForMeal(mealType) {
+    return members.filter(m => m.is_active && presentToday.has(m.id) && participatesIn(m.id, mealType));
+  }
+
+  /**
+   * Toggle attendance for a member.
+   */
+  function togglePresent(memberId) {
+    const newSet = new Set(presentToday);
+    if (newSet.has(memberId)) {
+      newSet.delete(memberId);
+    } else {
+      newSet.add(memberId);
+    }
+    presentToday = newSet;
+  }
+
+  /**
+   * Get the suggested payer for a meal (from present members only).
+   * Uses same logic: lowest payment count, then oldest last payment.
+   */
+  function getSuggestedPayer(mealType) {
+    const present = getPresentForMeal(mealType);
+    if (present.length === 0) return null;
+
+    // Get stats for present members
+    const memberStats = present.map(m => {
+      const s = stats.find(st => st.member_id === m.id);
+      const count = mealType === 'breakfast' ? (s?.breakfast_count || 0) : (s?.lunch_count || 0);
+      // Find last payment date for this member + meal
+      const lastPayment = payments.find(p => p.member_id === m.id && p.meal_type === mealType);
+      return { ...m, count, lastPaymentDate: lastPayment?.payment_date || null };
+    });
+
+    // Sort: lowest count first, then oldest last payment, then by id
+    memberStats.sort((a, b) => {
+      if (a.count !== b.count) return a.count - b.count;
+      if (!a.lastPaymentDate && b.lastPaymentDate) return -1;
+      if (a.lastPaymentDate && !b.lastPaymentDate) return 1;
+      if (a.lastPaymentDate && b.lastPaymentDate) {
+        return a.lastPaymentDate.localeCompare(b.lastPaymentDate);
+      }
+      return a.id - b.id;
+    });
+
+    return memberStats[0];
+  }
+
+  /**
+   * Check if the backend's suggested payer is absent today.
+   */
+  function isBackendPayerAbsent(mealType) {
+    const payer = mealType === 'breakfast' ? nextPayer?.breakfast : nextPayer?.lunch;
+    if (!payer) return false;
+    return !presentToday.has(payer.member_id);
+  }
+
+  /**
+   * Confirm payment for a specific member.
+   */
+  async function confirmPaymentFor(memberId, mealType) {
+    confirmingMeal = mealType;
+    try {
+      await mealFetch('/api/meals/payments', {
+        method: 'POST',
+        body: JSON.stringify({
+          member_id: memberId,
+          meal_type: mealType,
+          date: new Date().toISOString().split('T')[0],
+        }),
+      });
+      await loadData();
+    } catch (e) {
+      error = 'Không thể ghi nhận thanh toán.';
+    }
+    confirmingMeal = '';
+  }
+
+  /**
    * Confirm payment for the next payer.
-   * @param {string} mealType
    */
   async function confirmPayment(mealType) {
     const payer = mealType === 'breakfast' ? nextPayer?.breakfast : nextPayer?.lunch;
     if (!payer) return;
-
-    confirmingMeal = mealType;
-    try {
-      await mealFetch('/api/meals/payments', {
-        method: 'POST',
-        body: JSON.stringify({
-          member_id: payer.member_id,
-          meal_type: mealType,
-          date: new Date().toISOString().split('T')[0],
-        }),
-      });
-      await loadData();
-    } catch (e) {
-      error = 'Không thể ghi nhận thanh toán.';
-    }
-    confirmingMeal = '';
+    await confirmPaymentFor(payer.member_id, mealType);
   }
 
   /**
    * Record payment for a different member (override).
-   * @param {string} mealType
    */
   async function confirmOverride(mealType) {
     if (!selectedOverrideMember) return;
-
-    confirmingMeal = mealType;
-    try {
-      await mealFetch('/api/meals/payments', {
-        method: 'POST',
-        body: JSON.stringify({
-          member_id: selectedOverrideMember,
-          meal_type: mealType,
-          date: new Date().toISOString().split('T')[0],
-        }),
-      });
-      overrideMode = '';
-      selectedOverrideMember = 0;
-      await loadData();
-    } catch (e) {
-      error = 'Không thể ghi nhận thanh toán.';
-    }
-    confirmingMeal = '';
+    await confirmPaymentFor(selectedOverrideMember, mealType);
+    overrideMode = '';
+    selectedOverrideMember = 0;
   }
 
   /**
    * Undo the most recent payment.
-   * @param {number} paymentId
    */
   async function undoPayment(paymentId) {
     try {
@@ -107,11 +172,6 @@
     }
   }
 
-  /**
-   * Check if a payment can be undone (within 24h).
-   * @param {string} createdAt
-   * @returns {boolean}
-   */
   function canUndo(createdAt) {
     const created = new Date(createdAt);
     const now = new Date();
@@ -131,21 +191,46 @@
   </div>
 {:else}
   <div class="meal-dashboard">
+    <!-- Attendance Section -->
+    <section class="attendance-section">
+      <h2>📋 Ai ăn hôm nay?</h2>
+      <p class="attendance-hint">Bỏ tick người vắng hôm nay</p>
+      <div class="attendance-list">
+        {#each members.filter(m => m.is_active) as member}
+          <label class="attendance-item" class:absent={!presentToday.has(member.id)}>
+            <input
+              type="checkbox"
+              checked={presentToday.has(member.id)}
+              onchange={() => togglePresent(member.id)}
+            />
+            <span>{member.name}</span>
+          </label>
+        {/each}
+      </div>
+    </section>
+
     <!-- Next Payer Cards -->
     <section class="next-payer-section">
       <h2>Người trả tiếp theo</h2>
       <div class="payer-cards">
         {#each ['breakfast', 'lunch'] as mealType}
-          {@const payer = mealType === 'breakfast' ? nextPayer?.breakfast : nextPayer?.lunch}
+          {@const backendPayer = mealType === 'breakfast' ? nextPayer?.breakfast : nextPayer?.lunch}
+          {@const absent = isBackendPayerAbsent(mealType)}
+          {@const suggested = absent ? getSuggestedPayer(mealType) : null}
+          {@const payer = absent ? suggested : backendPayer}
           <div class="payer-card">
             <div class="payer-meal-label">{getMealLabel(mealType)}</div>
             {#if payer}
-              <div class="payer-name">{payer.member_name}</div>
-              <div class="payer-count">Đã trả: {payer.payment_count} lần</div>
+              {#if absent}
+                <div class="payer-absent-notice">⚠️ {backendPayer.member_name} vắng → đề xuất:</div>
+              {/if}
+              <div class="payer-name">{payer.name || payer.member_name}</div>
+              <div class="payer-count">Đã trả: {payer.count ?? payer.payment_count} lần</div>
+              <div class="payer-present-count">Có mặt: {getPresentForMeal(mealType).length} người</div>
               <div class="payer-actions">
                 <button
                   class="btn-confirm"
-                  onclick={() => confirmPayment(mealType)}
+                  onclick={() => confirmPaymentFor(payer.id || payer.member_id, mealType)}
                   disabled={confirmingMeal === mealType}
                 >
                   {confirmingMeal === mealType ? '...' : '✓ Xác nhận đã trả'}
@@ -161,7 +246,7 @@
                 <div class="override-form">
                   <select bind:value={selectedOverrideMember}>
                     <option value={0}>-- Chọn người --</option>
-                    {#each members.filter(m => m.is_active) as member}
+                    {#each getPresentForMeal(mealType) as member}
                       <option value={member.id}>{member.name}</option>
                     {/each}
                   </select>
@@ -264,6 +349,60 @@
     font-size: 1.25rem;
     margin: 0 0 1rem;
     color: var(--text-color, #1a202c);
+  }
+
+  .attendance-section {
+    padding: 1rem;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 0.75rem;
+    background: var(--card-bg, #ffffff);
+  }
+
+  .attendance-hint {
+    font-size: 0.8rem;
+    color: var(--text-muted, #718096);
+    margin: -0.5rem 0 0.75rem;
+  }
+
+  .attendance-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .attendance-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .attendance-item:hover {
+    border-color: var(--primary-color, #3b82f6);
+  }
+
+  .attendance-item.absent {
+    opacity: 0.4;
+    text-decoration: line-through;
+    border-style: dashed;
+  }
+
+  .payer-absent-notice {
+    font-size: 0.8rem;
+    color: #f59e0b;
+    margin-bottom: 0.25rem;
+  }
+
+  .payer-present-count {
+    font-size: 0.8rem;
+    color: var(--text-muted, #718096);
+    margin-top: 0.125rem;
   }
 
   .payer-cards {
@@ -446,6 +585,16 @@
   :global(.dark) .payer-card {
     background: var(--card-bg, #1e293b);
     border-color: var(--border-color, #334155);
+  }
+
+  :global(.dark) .attendance-section {
+    background: var(--card-bg, #1e293b);
+    border-color: var(--border-color, #334155);
+  }
+
+  :global(.dark) .attendance-item {
+    border-color: var(--border-color, #334155);
+    color: var(--text-color, #f1f5f9);
   }
 
   :global(.dark) .payer-name,
