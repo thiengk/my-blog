@@ -53,6 +53,14 @@
         Tags
       </a>
     </li>
+    <li>
+      <a
+        href="/internal/meals"
+        class="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors font-medium"
+      >
+        🍜 Lịch ăn
+      </a>
+    </li>
   </ul>
 
   <!-- Mobile Hamburger Button -->
@@ -112,6 +120,14 @@
         onclick={closeMenu}
       >
         Tags
+      </a>
+      <a
+        href="/internal/meals"
+        class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+        role="menuitem"
+        onclick={closeMenu}
+      >
+        🍜 Lịch ăn
       </a>
     </div>
   {/if}
