@@ -3,8 +3,10 @@ package database
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/personal-blog/backend/internal/config"
 )
@@ -28,6 +30,13 @@ func NewPostgresPool(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, er
 	poolConfig.MaxConnLifetime = cfg.DBMaxConnLife
 	poolConfig.MaxConnIdleTime = 5 * time.Minute
 	poolConfig.HealthCheckPeriod = 30 * time.Second
+
+	// Disable prepared statements for PgBouncer/Supabase pooler compatibility.
+	// PgBouncer in transaction mode does not support prepared statements.
+	if strings.Contains(cfg.DatabaseURL, "pooler.supabase.com") ||
+		strings.Contains(cfg.DatabaseURL, "prepared_statements=false") {
+		poolConfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
