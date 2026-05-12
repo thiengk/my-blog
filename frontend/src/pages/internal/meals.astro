@@ -32,24 +32,25 @@ import MemberManager from '../../components/MemberManager.svelte';
 </BaseLayout>
 
 <script>
-  // Simple tab switching
-  const tabs = document.querySelectorAll('.tab');
-  const contents = document.querySelectorAll('.tab-content');
+  // Tab switching with event delegation (works even when DOM is rendered later by Svelte)
+  document.addEventListener('click', (e) => {
+    const tab = e.target.closest('.tab');
+    if (!tab) return;
 
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      const target = tab.getAttribute('data-tab');
+    const target = tab.getAttribute('data-tab');
+    if (!target) return;
 
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
+    // Update tab active state
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
 
-      contents.forEach(c => {
-        if (c.id === `content-${target}`) {
-          c.classList.remove('hidden');
-        } else {
-          c.classList.add('hidden');
-        }
-      });
+    // Show/hide content
+    document.querySelectorAll('.tab-content').forEach(c => {
+      if (c.id === `content-${target}`) {
+        c.classList.remove('hidden');
+      } else {
+        c.classList.add('hidden');
+      }
     });
   });
 </script>
