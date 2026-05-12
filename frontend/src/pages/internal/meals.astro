@@ -1,0 +1,114 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MealAuth from '../../components/MealAuth.svelte';
+import MealDashboard from '../../components/MealDashboard.svelte';
+import MemberManager from '../../components/MemberManager.svelte';
+---
+
+<BaseLayout title="Lịch ăn nhóm" description="Internal tool - Quản lý lịch ăn và thanh toán nhóm">
+  <main class="meal-page">
+    <MealAuth client:load>
+      <div class="meal-content">
+        <header class="meal-header">
+          <h1>🍜 Lịch ăn nhóm</h1>
+          <p class="meal-subtitle">Quản lý lịch thanh toán bữa ăn công bằng</p>
+        </header>
+
+        <div class="meal-tabs">
+          <button class="tab active" data-tab="dashboard" id="tab-dashboard">Dashboard</button>
+          <button class="tab" data-tab="members" id="tab-members">Thành viên</button>
+        </div>
+
+        <div class="tab-content" id="content-dashboard">
+          <MealDashboard client:load />
+        </div>
+
+        <div class="tab-content hidden" id="content-members">
+          <MemberManager client:load />
+        </div>
+      </div>
+    </MealAuth>
+  </main>
+</BaseLayout>
+
+<script>
+  // Simple tab switching
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.getAttribute('data-tab');
+
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      contents.forEach(c => {
+        if (c.id === `content-${target}`) {
+          c.classList.remove('hidden');
+        } else {
+          c.classList.add('hidden');
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .meal-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  .meal-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .meal-header h1 {
+    font-size: 2rem;
+    margin: 0;
+  }
+
+  .meal-subtitle {
+    color: var(--text-muted, #718096);
+    margin: 0.5rem 0 0;
+  }
+
+  .meal-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    margin-bottom: 1.5rem;
+  }
+
+  .tab {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: transparent;
+    color: var(--text-muted, #718096);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .tab:hover {
+    color: var(--text-color, #1a202c);
+  }
+
+  .tab.active {
+    color: var(--primary-color, #3b82f6);
+    border-bottom-color: var(--primary-color, #3b82f6);
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .meal-content {
+    min-height: 400px;
+  }
+</style>

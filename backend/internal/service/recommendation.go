@@ -99,47 +99,56 @@ func (s *recommendationService) GetTopPosts(ctx context.Context, limit int) ([]*
 	}
 
 	// Try to read from Redis cache
-	cached, err := s.redis.Get(ctx, recommendationsTopKey).Bytes()
-	if err == nil && len(cached) > 0 {
-		// Cache hit — unmarshal the JSON list
-		var posts []*RankedPost
-		if jsonErr := json.Unmarshal(cached, &posts); jsonErr == nil {
-			// Return up to the requested limit
-			if len(posts) > limit {
-				posts = posts[:limit]
+	if s.redis != nil {
+		cached, err := s.redis.Get(ctx, recommendationsTopKey).Bytes()
+		if err == nil && len(cached) > 0 {
+			// Cache hit — unmarshal the JSON list
+			var posts []*RankedPost
+			if jsonErr := json.Unmarshal(cached, &posts); jsonErr == nil {
+				// Return up to the requested limit
+				if len(posts) > limit {
+					posts = posts[:limit]
+				}
+				return posts, nil
 			}
-			return posts, nil
+			// If unmarshal fails, fall through to recalculate
+			log.Printf("[recommendation] failed to unmarshal cached rankings: %v", err)
 		}
-		// If unmarshal fails, fall through to recalculate
-		log.Printf("[recommendation] failed to unmarshal cached rankings: %v", err)
 	}
 
-	// Cache miss or error — recalculate rankings
+	// Cache miss or Redis unavailable — recalculate rankings
 	if err := s.RecalculateRankings(ctx); err != nil {
-		return nil, fmt.Errorf("failed to recalculate rankings: %w", err)
+		// If recalculation fails, return empty list instead of error
+		log.Printf("[recommendation] failed to recalculate rankings: %v", err)
+		return []*RankedPost{}, nil
 	}
 
 	// Read the freshly cached data
-	cached, err = s.redis.Get(ctx, recommendationsTopKey).Bytes()
-	if err != nil {
-		return nil, fmt.Errorf("failed to read rankings after recalculation: %w", err)
+	if s.redis != nil {
+		cached, err := s.redis.Get(ctx, recommendationsTopKey).Bytes()
+		if err == nil {
+			var posts []*RankedPost
+			if err := json.Unmarshal(cached, &posts); err == nil {
+				if len(posts) > limit {
+					posts = posts[:limit]
+				}
+				return posts, nil
+			}
+		}
 	}
 
-	var posts []*RankedPost
-	if err := json.Unmarshal(cached, &posts); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal recalculated rankings: %w", err)
-	}
-
-	if len(posts) > limit {
-		posts = posts[:limit]
-	}
-	return posts, nil
+	// If we still can't read from cache, query DB directly
+	return s.queryRankingsFromDB(ctx, limit)
 }
 
 // RecalculateRankings queries PostgreSQL to compute engagement scores and caches the result in Redis.
 // Score formula: (like_count × like_weight) + (comment_count × comment_weight) + (share_count × share_weight)
 // Results are sorted by score DESC, with created_at DESC as tiebreaker.
 func (s *recommendationService) RecalculateRankings(ctx context.Context) error {
+	if s.db == nil {
+		return fmt.Errorf("database is not available")
+	}
+
 	query := `
 		SELECT slug, like_count, comment_count, share_count,
 			(like_count * $1 + comment_count * $2 + share_count * $3) AS engagement_score
@@ -177,15 +186,60 @@ func (s *recommendationService) RecalculateRankings(ctx context.Context) error {
 	}
 
 	// Serialize and cache in Redis with TTL
-	data, err := json.Marshal(posts)
-	if err != nil {
-		return fmt.Errorf("failed to marshal rankings: %w", err)
-	}
+	if s.redis != nil {
+		data, err := json.Marshal(posts)
+		if err != nil {
+			return fmt.Errorf("failed to marshal rankings: %w", err)
+		}
 
-	if err := s.redis.Set(ctx, recommendationsTopKey, data, s.config.CacheTTL).Err(); err != nil {
-		log.Printf("[recommendation] failed to cache rankings in Redis: %v", err)
-		// Non-fatal: we still have the data, just won't be cached
+		if err := s.redis.Set(ctx, recommendationsTopKey, data, s.config.CacheTTL).Err(); err != nil {
+			log.Printf("[recommendation] failed to cache rankings in Redis: %v", err)
+			// Non-fatal: we still have the data, just won't be cached
+		}
 	}
 
 	return nil
+}
+
+// queryRankingsFromDB queries rankings directly from DB without caching.
+// Used as fallback when Redis is unavailable.
+func (s *recommendationService) queryRankingsFromDB(ctx context.Context, limit int) ([]*RankedPost, error) {
+	if s.db == nil {
+		return []*RankedPost{}, nil
+	}
+
+	query := `
+		SELECT slug, like_count, comment_count, share_count,
+			(like_count * $1 + comment_count * $2 + share_count * $3) AS engagement_score
+		FROM post_engagement
+		ORDER BY engagement_score DESC, created_at DESC
+		LIMIT $4
+	`
+
+	rows, err := s.db.Query(ctx, query,
+		s.config.LikeWeight,
+		s.config.CommentWeight,
+		s.config.ShareWeight,
+		limit,
+	)
+	if err != nil {
+		log.Printf("[recommendation] failed to query DB directly: %v", err)
+		return []*RankedPost{}, nil
+	}
+	defer rows.Close()
+
+	var posts []*RankedPost
+	for rows.Next() {
+		var p RankedPost
+		if err := rows.Scan(&p.Slug, &p.Likes, &p.Comments, &p.Shares, &p.EngagementScore); err != nil {
+			log.Printf("[recommendation] failed to scan row: %v", err)
+			continue
+		}
+		posts = append(posts, &p)
+	}
+
+	if posts == nil {
+		posts = []*RankedPost{}
+	}
+	return posts, nil
 }

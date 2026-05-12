@@ -80,8 +80,8 @@ func main() {
 	// CORS configuration
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.CORSOrigins,
-		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "X-Group-Secret"},
 		ExposeHeaders:    []string{"Content-Length", "Retry-After"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -146,6 +146,16 @@ func main() {
 
 	// Recommendation route (no rate limit)
 	recommendationHandler.RegisterRoutes(api)
+
+	// Meal scheduler routes (auth required via X-Group-Secret header)
+	if dbPool != nil {
+		mealService := service.NewMealService(dbPool)
+		mealHandler := handler.NewMealHandler(mealService)
+		mealGroup := api.Group("")
+		mealGroup.Use(middleware.MealAuth(cfg.MealGroupSecret))
+		mealHandler.RegisterRoutes(mealGroup)
+		log.Println("Meal scheduler routes initialized")
+	}
 
 	// Start background goroutine for engagement batch flush (every 60 seconds)
 	go func() {

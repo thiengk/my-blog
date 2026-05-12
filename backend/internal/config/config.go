@@ -35,6 +35,9 @@ type Config struct {
 	EmailFrom      string
 	EmailFromName  string
 	SiteURL        string
+
+	// Meal Scheduler
+	MealGroupSecret string
 }
 
 // Load reads configuration from environment variables.
@@ -60,6 +63,8 @@ func Load() (*Config, error) {
 		EmailFrom:      getEnv("EMAIL_FROM", "noreply@example.com"),
 		EmailFromName:  getEnv("EMAIL_FROM_NAME", "Personal Blog"),
 		SiteURL:        getEnv("SITE_URL", "http://localhost:8080"),
+
+		MealGroupSecret: getEnv("MEAL_GROUP_SECRET", ""),
 	}
 
 	// Validate required fields in production
