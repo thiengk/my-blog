@@ -5,10 +5,13 @@ import sitemap from '@astrojs/sitemap';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 
+import cloudflare from "@astrojs/cloudflare";
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://blog.example.com',
   output: 'static',
+
   integrations: [
     svelte(),
     tailwind({
@@ -16,6 +19,7 @@ export default defineConfig({
     }),
     sitemap(),
   ],
+
   image: {
     // Use Astro's built-in sharp service for image optimization
     service: {
@@ -30,6 +34,7 @@ export default defineConfig({
     domains: [],
     remotePatterns: [],
   },
+
   markdown: {
     rehypePlugins: [
       rehypeSlug,
@@ -61,4 +66,6 @@ export default defineConfig({
       transformers: [],
     },
   },
+
+  adapter: cloudflare()
 });
