@@ -1,6 +1,4 @@
 <script>
-  import { pipeline } from '@xenova/transformers';
-
   let file = $state(null);
   let fileName = $state('');
   let status = $state('idle'); // idle | loading-model | transcribing | done | error
@@ -19,6 +17,9 @@
     status = 'loading-model';
     progressText = 'Đang tải model Whisper (~40MB lần đầu)...';
     progress = 0;
+
+    // Dynamic import to avoid SSR/build issues
+    const { pipeline } = await import('@xenova/transformers');
 
     transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
       progress_callback: (data) => {

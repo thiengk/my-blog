@@ -1,10 +1,14 @@
 import { defineConfig } from 'astro/config';
 import svelte from '@astrojs/svelte';
 import tailwind from '@astrojs/tailwind';
+import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   site: 'https://speech-to-text.pages.dev',
-  output: 'static',
+  output: 'hybrid',
+  adapter: cloudflare({
+    imageService: 'passthrough',
+  }),
   integrations: [
     svelte(),
     tailwind({
@@ -12,6 +16,9 @@ export default defineConfig({
     }),
   ],
   vite: {
+    ssr: {
+      external: ['@xenova/transformers'],
+    },
     optimizeDeps: {
       exclude: ['@xenova/transformers'],
     },
