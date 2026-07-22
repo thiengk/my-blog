@@ -13,10 +13,10 @@ export default defineConfig({
   ],
   vite: {
     ssr: {
-      external: ['@xenova/transformers'],
+      external: ['@huggingface/transformers'],
     },
     optimizeDeps: {
-      exclude: ['@xenova/transformers'],
+      exclude: ['@huggingface/transformers'],
     },
   },
 });

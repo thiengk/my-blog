@@ -16,9 +16,11 @@
     modelProgressText = 'Đang tải model Whisper (~40MB lần đầu)...';
     modelProgress = 0;
 
-    const { pipeline } = await import('@xenova/transformers');
+    const { pipeline } = await import('@huggingface/transformers');
 
-    transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
+    transcriber = await pipeline('automatic-speech-recognition', 'onnx-community/whisper-tiny', {
+      dtype: 'q8',
+      device: 'wasm',
       progress_callback: (data) => {
         if (data.status === 'progress') {
           modelProgress = Math.round(data.progress);
