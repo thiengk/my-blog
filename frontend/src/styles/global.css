@@ -2,419 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
-/*
- * Design System - Color Contrast (WCAG AA verified):
- * Light mode: gray-700 (#374151) on white (#ffffff) = 8.59:1 ✓
- * Dark mode:  gray-300 (#d1d5db) on gray-900 (#111827) = 11.08:1 ✓
- * Links light: primary-600 (#0284c7) on white = 4.56:1 ✓
- * Links dark:  primary-400 (#38bdf8) on gray-900 = 8.19:1 ✓
- *
- * Responsive breakpoints:
- * - mobile:  < 768px (default styles)
- * - tablet:  768px - 1024px (md: prefix)
- * - desktop: > 1024px (lg: prefix)
- */
-
 @layer base {
   html {
     @apply scroll-smooth;
   }
 
   body {
-    @apply min-h-screen bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 transition-colors;
+    @apply min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200;
     @apply font-sans antialiased;
-    @apply text-base leading-relaxed;
   }
 
-  /* Headings - semantic sizing and weight */
-  h1 {
-    @apply text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight;
-    @apply text-gray-900 dark:text-gray-100;
-    @apply mt-8 mb-4;
-  }
-
-  h2 {
-    @apply text-2xl md:text-3xl font-bold tracking-tight;
-    @apply text-gray-900 dark:text-gray-100;
-    @apply mt-8 mb-3;
-  }
-
-  h3 {
-    @apply text-xl md:text-2xl font-semibold;
-    @apply text-gray-900 dark:text-gray-100;
-    @apply mt-6 mb-2;
-  }
-
-  h4 {
-    @apply text-lg md:text-xl font-semibold;
-    @apply text-gray-900 dark:text-gray-100;
-    @apply mt-4 mb-2;
-  }
-
-  h5 {
-    @apply text-base md:text-lg font-medium;
-    @apply text-gray-900 dark:text-gray-100;
-    @apply mt-4 mb-1;
-  }
-
-  h6 {
-    @apply text-sm md:text-base font-medium uppercase tracking-wide;
-    @apply text-gray-700 dark:text-gray-300;
-    @apply mt-4 mb-1;
-  }
-
-  /* Links */
-  a {
-    @apply text-primary-600 dark:text-primary-400;
-    @apply underline underline-offset-2 decoration-primary-600/30 dark:decoration-primary-400/30;
-    @apply transition-colors duration-200;
-  }
-
-  a:hover {
-    @apply text-primary-700 dark:text-primary-300;
-    @apply decoration-primary-700/60 dark:decoration-primary-300/60;
-  }
-
-  a:focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary-500 rounded-sm;
-  }
-
-  /* Selection */
   ::selection {
-    @apply bg-primary-100 dark:bg-primary-900/40 text-gray-900 dark:text-gray-100;
+    @apply bg-indigo-100 dark:bg-indigo-900/40;
   }
 }
 
 @layer components {
-  /* ===== Prose / Article Content Styles ===== */
-
-  /* Paragraphs within prose */
-  .prose p {
-    @apply leading-7 mb-4;
-  }
-
-  /* Unordered lists */
-  .prose ul {
-    @apply list-disc pl-6 mb-4 space-y-1;
-  }
-
-  .prose ul ul {
-    @apply list-[circle] mt-1 mb-0;
-  }
-
-  .prose ul ul ul {
-    @apply list-[square];
-  }
-
-  /* Ordered lists */
-  .prose ol {
-    @apply list-decimal pl-6 mb-4 space-y-1;
-  }
-
-  .prose ol ol {
-    @apply list-[lower-alpha] mt-1 mb-0;
-  }
-
-  /* List items */
-  .prose li {
-    @apply leading-7;
-  }
-
-  .prose li > p {
-    @apply mb-2;
-  }
-
-  /* Inline code */
-  .prose :not(pre) > code {
-    @apply px-1.5 py-0.5 rounded-md text-sm font-medium;
-    @apply bg-gray-100 dark:bg-gray-800;
-    @apply text-gray-800 dark:text-gray-200;
-    @apply border border-gray-200 dark:border-gray-700;
-  }
-
-  /* Code blocks */
-  .prose pre {
-    @apply rounded-lg p-4 my-6 overflow-x-auto;
-    @apply bg-gray-900 dark:bg-gray-800/50;
-    @apply border border-gray-200 dark:border-gray-700;
-    @apply text-sm leading-relaxed;
-  }
-
-  .prose pre code {
-    @apply bg-transparent border-0 p-0 text-sm;
-    @apply text-gray-100 dark:text-gray-100;
-    @apply font-mono;
-  }
-
-  /* Better contrast for ASCII art / diagrams in code blocks */
-  .prose pre {
-    @apply shadow-lg;
-  }
-  
-  .prose pre code {
-    @apply leading-6;
-    letter-spacing: 0.02em;
-  }
-
-  /* Plain text code blocks (no language specified) - better for ASCII diagrams */
-  .prose pre:not([class*="language-"]) {
-    @apply bg-gray-50 dark:bg-gray-900;
-    @apply border-2 border-gray-300 dark:border-gray-600;
-  }
-
-  .prose pre:not([class*="language-"]) code {
-    @apply text-gray-900 dark:text-gray-100;
-    @apply font-semibold;
-  }
-
-  /* Override Shiki default colors for better contrast */
-  .prose pre.astro-code {
-    @apply bg-gray-900 dark:bg-gray-950;
-  }
-
-  /* Force dark text for plain code blocks */
-  .prose pre code,
-  .prose pre.astro-code code {
-    color: inherit !important;
-  }
-
-  /* Specific styling for plain text blocks (ASCII art) */
-  .prose pre:not(.astro-code) {
-    @apply bg-gray-100 dark:bg-gray-800;
-    @apply border border-gray-300 dark:border-gray-600;
-  }
-
-  .prose pre:not(.astro-code) code {
-    @apply text-gray-900 dark:text-gray-50;
-    font-weight: 500 !important;
-    color: rgb(17 24 39) !important; /* gray-900 */
-  }
-
-  .dark .prose pre:not(.astro-code) code {
-    color: rgb(249 250 251) !important; /* gray-50 */
-  }
-
-  /* Additional override for any inline styles from Shiki */
-  .prose pre code span {
-    color: inherit !important;
-  }
-
-  /* Ensure plain text has good contrast */
-  .prose pre:not([class*="language-"]):not(.astro-code),
-  .prose pre.astro-code:not([data-language]) {
-    background-color: rgb(243 244 246) !important; /* gray-100 */
-  }
-
-  .dark .prose pre:not([class*="language-"]):not(.astro-code),
-  .dark .prose pre.astro-code:not([data-language]) {
-    background-color: rgb(31 41 55) !important; /* gray-800 */
-  }
-
-  .prose pre:not([class*="language-"]):not(.astro-code) code,
-  .prose pre.astro-code:not([data-language]) code {
-    color: rgb(17 24 39) !important; /* gray-900 */
-    font-weight: 600 !important;
-  }
-
-  .dark .prose pre:not([class*="language-"]):not(.astro-code) code,
-  .dark .prose pre.astro-code:not([data-language]) code {
-    color: rgb(249 250 251) !important; /* gray-50 */
-    font-weight: 600 !important;
-  }
-
-  /* Blockquotes */
-  .prose blockquote {
-    @apply border-l-4 border-gray-300 dark:border-gray-600;
-    @apply pl-4 md:pl-6 py-1 my-6;
-    @apply italic text-gray-600 dark:text-gray-400;
-    @apply bg-gray-50 dark:bg-gray-800/30 rounded-r-lg;
-  }
-
-  .prose blockquote p {
-    @apply mb-2 last:mb-0;
-  }
-
-  .prose blockquote cite {
-    @apply not-italic text-sm text-gray-500 dark:text-gray-500;
-  }
-
-  /* Tables */
-  .prose table {
-    @apply w-full text-sm my-6 border-collapse;
-  }
-
-  .prose thead {
-    @apply border-b-2 border-gray-300 dark:border-gray-600;
-  }
-
-  .prose thead th {
-    @apply px-4 py-3 text-left font-semibold;
-    @apply text-gray-900 dark:text-gray-100;
-    @apply bg-gray-50 dark:bg-gray-800/50;
-  }
-
-  .prose tbody tr {
-    @apply border-b border-gray-200 dark:border-gray-700;
-  }
-
-  .prose tbody tr:nth-child(even) {
-    @apply bg-gray-50/50 dark:bg-gray-800/20;
-  }
-
-  .prose tbody td {
-    @apply px-4 py-3;
-  }
-
-  /* Horizontal rules */
-  .prose hr {
-    @apply my-8 border-gray-200 dark:border-gray-700;
-  }
-
-  /* Images in prose */
-  .prose img {
-    @apply rounded-lg shadow-md my-6;
-  }
-
-  .prose figure {
-    @apply my-6;
-  }
-
-  .prose figcaption {
-    @apply text-center text-sm text-gray-500 dark:text-gray-400 mt-2;
-  }
-
-  /* Definition lists */
-  .prose dl {
-    @apply my-4;
-  }
-
-  .prose dt {
-    @apply font-semibold text-gray-900 dark:text-gray-100 mt-4;
-  }
-
-  .prose dd {
-    @apply pl-4 mt-1 text-gray-600 dark:text-gray-400;
-  }
-
-  /* Keyboard shortcuts */
-  .prose kbd {
-    @apply px-1.5 py-0.5 text-xs font-mono rounded;
-    @apply bg-gray-100 dark:bg-gray-800;
-    @apply border border-gray-300 dark:border-gray-600;
-    @apply shadow-sm;
-  }
-
-  /* Mark / highlight */
-  .prose mark {
-    @apply bg-yellow-100 dark:bg-yellow-900/40 px-0.5 rounded;
-  }
-
-  /* Abbreviations */
-  .prose abbr[title] {
-    @apply underline decoration-dotted underline-offset-2 cursor-help;
-  }
-
-  /* ===== Utility Components ===== */
-
-  /* Skip to content link for accessibility */
-  .skip-link {
-    @apply sr-only focus:not-sr-only;
-    @apply focus:fixed focus:top-4 focus:left-4 focus:z-50;
-    @apply focus:px-4 focus:py-2 focus:rounded-md;
-    @apply focus:bg-primary-600 focus:text-white;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-400;
-  }
-
-  /* Container with responsive padding */
-  .container-blog {
-    @apply max-w-4xl mx-auto px-4 md:px-6 lg:px-8;
-  }
-
-  /* Card component base */
-  .card {
-    @apply bg-white dark:bg-gray-800;
-    @apply border border-gray-200 dark:border-gray-700;
-    @apply rounded-xl shadow-sm;
-    @apply transition-shadow duration-200;
-  }
-
-  .card:hover {
-    @apply shadow-md;
-  }
-
-  /* Button base styles */
   .btn {
     @apply inline-flex items-center justify-center;
-    @apply px-4 py-2 rounded-lg font-medium text-sm;
+    @apply px-5 py-2.5 rounded-lg font-medium text-sm;
     @apply transition-all duration-200;
-    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-primary {
-    @apply bg-primary-600 text-white;
-    @apply hover:bg-primary-700;
-    @apply active:bg-primary-800;
+    @apply bg-indigo-600 text-white;
+    @apply hover:bg-indigo-700 active:bg-indigo-800;
+    @apply disabled:hover:bg-indigo-600;
   }
 
   .btn-secondary {
-    @apply bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300;
+    @apply bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300;
     @apply border border-gray-300 dark:border-gray-600;
-    @apply hover:bg-gray-200 dark:hover:bg-gray-700;
+    @apply hover:bg-gray-100 dark:hover:bg-gray-700;
   }
 
-  /* Tag/badge component */
-  .tag {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
-    @apply bg-primary-50 dark:bg-primary-900/30;
-    @apply text-primary-700 dark:text-primary-300;
-    @apply border border-primary-200 dark:border-primary-800;
-  }
-
-  /* Input base styles */
-  .input {
-    @apply w-full px-4 py-2 rounded-lg text-sm;
-    @apply bg-white dark:bg-gray-800;
-    @apply border border-gray-300 dark:border-gray-600;
-    @apply text-gray-900 dark:text-gray-100;
-    @apply placeholder-gray-400 dark:placeholder-gray-500;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
-    @apply transition-colors duration-200;
-  }
-}
-
-@layer utilities {
-  /* Text balance for headings */
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  /* Smooth transition for theme switching */
-  .theme-transition {
-    @apply transition-colors duration-200;
-  }
-
-  /* Hide scrollbar but keep functionality */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Line clamp utilities */
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  .card {
+    @apply bg-white dark:bg-gray-900;
+    @apply border border-gray-200 dark:border-gray-800;
+    @apply rounded-2xl shadow-sm;
   }
 }

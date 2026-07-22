@@ -1,27 +1,22 @@
-# Environment files
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment
 .env
 .env.local
-.env.*.local
-
-# OS files
-.DS_Store
-Thumbs.db
 
 # IDE
-.idea/
 .vscode/
+.idea/
 *.swp
 *.swo
 
-# Backend build artifacts
-backend/bin/
-backend/tmp/
+# OS
+.DS_Store
+Thumbs.db
 
-# Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/.astro/
-
-# Docker volumes
-postgres_data/
-redis_data/
+# Astro
+.astro/

@@ -1,110 +1,29 @@
-# Personal Blog
+# 🎙️ Speech to Text Tool
 
-Blog cá nhân đơn giản được xây dựng với Astro (frontend) và Go (backend).
+Upload file MP3 (< 60 giây) và nhận transcript text ngay trên trình duyệt.
 
-## Tính năng
+## Công nghệ
 
-✅ **Đã có:**
-- Hiển thị danh sách bài viết với pagination
-- Xem chi tiết bài viết (Markdown)
-- Lọc theo categories và tags
-- Tìm kiếm bài viết
-- Dark mode
-- View counter (đếm lượt xem)
-- SEO optimization
-- RSS feed
-- Responsive design
+- **Astro 5** + **Svelte 5** + **TailwindCSS**
+- **Transformers.js** (Whisper tiny model) — chạy hoàn toàn client-side
+- Deploy: **Cloudflare Pages**
 
-## Công nghệ sử dụng
+## Cách chạy
 
-### Frontend
-- **Astro** - Static site generator
-- **Svelte** - Interactive components
-- **TailwindCSS** - Styling
-- **TypeScript** - Type safety
-
-### Backend
-- **Go (Gin)** - REST API
-- **PostgreSQL** - Database
-- **Redis** - Caching & rate limiting
-- **Docker** - Containerization
-
-## Cấu trúc thư mục
-
-```
-my-blog/
-├── frontend/           # Astro frontend
-│   ├── src/
-│   │   ├── components/ # Svelte & Astro components
-│   │   ├── content/    # Blog posts (Markdown)
-│   │   ├── layouts/    # Page layouts
-│   │   ├── pages/      # Routes
-│   │   └── styles/     # Global styles
-│   └── public/         # Static assets
-│
-├── backend/            # Go backend
-│   ├── cmd/server/     # Main application
-│   ├── internal/       # Internal packages
-│   │   ├── config/     # Configuration
-│   │   ├── database/   # Database connections
-│   │   ├── handler/    # HTTP handlers
-│   │   ├── middleware/ # Middlewares
-│   │   └── service/    # Business logic
-│   └── migrations/     # Database migrations
-│
-├── docs/               # Documentation
-└── docker-compose.yml  # Docker services
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-## Hướng dẫn chạy
+## Cách hoạt động
 
-Xem chi tiết trong [docs/SETUP.md](docs/SETUP.md)
+1. User upload file MP3/WAV/OGG (< 60s, < 10MB)
+2. Browser tải model Whisper tiny (~40MB, cache sau lần đầu)
+3. Audio được decode thành waveform 16kHz mono
+4. Model Whisper xử lý và trả về transcript text
+5. Không có dữ liệu nào rời khỏi trình duyệt
 
-### Tóm tắt nhanh
+## Deploy
 
-1. **Khởi động database:**
-   ```bash
-   docker compose up -d
-   ```
-
-2. **Chạy backend:**
-   ```bash
-   cd backend
-   go mod tidy
-   make migrate
-   make run
-   ```
-
-3. **Chạy frontend:**
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-
-4. **Truy cập:**
-   - Frontend: http://localhost:4321
-   - Backend API: http://localhost:8080
-
-## Viết bài mới
-
-Tạo file `.md` trong `frontend/src/content/blog/`:
-
-```markdown
----
-title: "Tiêu đề bài viết"
-description: "Mô tả ngắn"
-date: 2026-05-06
-category: "cong-nghe"
-tags: ["tag1", "tag2"]
-draft: false
----
-
-## Nội dung bài viết
-
-Viết nội dung ở đây...
-```
-
-## License
-
-MIT
+Push code lên branch `main` → Cloudflare Pages tự động build và deploy.
